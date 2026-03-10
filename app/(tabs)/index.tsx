@@ -1,98 +1,101 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// Archivo: app/(tabs)/index.tsx
+import { useRouter } from 'expo-router'; // Para navegar a la pantalla de detalles
+import React, { useState } from 'react';
+import { FlatList, StyleSheet, TextInput, View } from 'react-native';
+import MatchCard from '../../src/components/MatchCard';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// MOCK DATA: Simulando lo que nos devolvería la base de datos (Equipos + Partidos)
+const mockMatches = [
+  {
+    id_partido: '1',
+    local_logo: 'https://cdn-icons-png.flaticon.com/512/805/805504.png', // Escudo genérico local
+    rival_logo: 'https://cdn-icons-png.flaticon.com/512/805/805477.png', // Escudo genérico rival
+    status: 'future', // Partido a futuro
+    fecha: new Date('2026-04-15T18:00:00'),
+  },
+  {
+    id_partido: '2',
+    local_logo: 'https://cdn-icons-png.flaticon.com/512/805/805504.png',
+    rival_logo: 'https://cdn-icons-png.flaticon.com/512/805/805481.png',
+    status: 'next', // Próximo partido
+    fecha: new Date('2026-03-14T12:30:00'),
+  },
+  {
+    id_partido: '3',
+    local_logo: 'https://cdn-icons-png.flaticon.com/512/805/805504.png',
+    rival_logo: 'https://cdn-icons-png.flaticon.com/512/805/805488.png',
+    status: 'played', // Partido ya jugado
+    fecha: new Date('2026-03-01T18:00:00'),
+    score_local: 34,
+    score_rival: 23,
+  },
+  {
+    id_partido: '4',
+    local_logo: 'https://cdn-icons-png.flaticon.com/512/805/805504.png',
+    rival_logo: 'https://cdn-icons-png.flaticon.com/512/805/805494.png',
+    status: 'played',
+    fecha: new Date('2026-02-23T18:00:00'),
+    score_local: 32,
+    score_rival: 37,
+  }
+];
 
-export default function HomeScreen() {
+export default function MatchListScreen() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Cuando tocas un partido, navegamos a la pantalla de detalles pasándole el ID
+  const handlePressMatch = (id_partido: string) => {
+    router.push(`/match/${id_partido}`);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      {/* Buscador */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="🔍 Buscar partido o equipo..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Listado de Partidos */}
+      <FlatList
+        data={mockMatches}
+        keyExtractor={(item) => item.id_partido}
+        renderItem={({ item }) => (
+          <MatchCard 
+            match={item} 
+            onPress={() => handlePressMatch(item.id_partido)} 
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA', // Un fondo gris muy clarito para que las tarjetas resalten
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  searchContainer: {
+    padding: 15,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  searchInput: {
+    backgroundColor: '#F0F2F5',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  listContent: {
+    padding: 15,
   },
 });
