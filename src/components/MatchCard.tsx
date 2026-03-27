@@ -13,7 +13,7 @@ interface MatchData {
     score_rival?: number
   },
 
-  onPress: () => any
+  onPress: () => void
 
 }
 

@@ -1,5 +1,5 @@
 // MOCK DATA: Simulando lo que nos devolvería la base de datos (Equipos + Partidos)
-export const mockMatches = [
+const mockMatches = [
   {
     id_partido: 1,
     local_logo: 'https://cdn-icons-png.flaticon.com/512/805/805504.png', // Escudo genérico local
@@ -33,3 +33,5 @@ export const mockMatches = [
     score_rival: 37,
   }
 ];
+
+export default mockMatches;

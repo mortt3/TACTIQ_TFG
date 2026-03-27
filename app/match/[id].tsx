@@ -4,8 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TimelineItem from '../../src/components/TimelineItem';
-import { mockMatches} from '../consts/matches';
-import { initialEvents } from '../consts/events';
+import mockMatches from '../consts/matches';
+import  initialEvents  from '../consts/events';
 
 
 

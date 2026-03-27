@@ -39,15 +39,79 @@ export default function AddMatchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA', padding: 20 },
-  matchHeader: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', backgroundColor: '#FFF', padding: 20, borderRadius: 10, marginBottom: 30 },
-  teamBox: { alignItems: 'center' },
-  teamTitle: { fontSize: 14, fontWeight: 'bold', marginBottom: 10, color: '#555' },
-  logoPlaceholder: { width: 60, height: 60, backgroundColor: '#EEE', borderRadius: 30, justifyContent: 'center', alignItems: 'center' },
-  vsText: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  formContainer: { backgroundColor: '#FFF', padding: 20, borderRadius: 10 },
-  label: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8, marginTop: 10 },
-  input: { borderWidth: 1, borderColor: '#CCC', borderRadius: 8, padding: 12, fontSize: 16, marginBottom: 15 },
-  saveBtn: { backgroundColor: '#007BFF', padding: 15, borderRadius: 8, alignItems: 'center', marginTop: 20 },
-  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  container: 
+  {
+    flex: 1,
+    backgroundColor: '#F8F9FA', 
+    padding: 20 
+  },
+  matchHeader: 
+  { 
+    flexDirection: 'row', 
+    justifyContent: 'space-around', 
+    alignItems: 'center', 
+    backgroundColor: '#FFF', 
+    padding: 20, 
+    borderRadius: 10, 
+    marginBottom: 30 
+  },
+  teamBox: 
+  { 
+    alignItems: 'center' 
+  },
+  teamTitle: 
+  { 
+    fontSize: 14, 
+    fontWeight: 'bold', 
+    marginBottom: 10, 
+    color: '#555' 
+  },
+  logoPlaceholder: 
+  { width: 60, 
+    height: 60, 
+    backgroundColor: '#EEE', 
+    borderRadius: 30, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  vsText: 
+  { fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#333' 
+  },
+  formContainer: 
+  { 
+    backgroundColor: '#FFF', 
+    padding: 20, 
+    borderRadius: 10 
+  },
+  label: 
+  { fontSize: 16, 
+    fontWeight: 'bold', 
+    color: '#333', 
+    marginBottom: 8, 
+    marginTop: 10 
+  },
+  input: 
+  { 
+    borderWidth: 1, 
+    borderColor: '#CCC', 
+    borderRadius: 8, 
+    padding: 12, 
+    fontSize: 16, 
+    marginBottom: 15 
+  },
+  saveBtn: 
+  { 
+    backgroundColor: '#007BFF', 
+    padding: 15, 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    marginTop: 20 
+  },
+  saveBtnText: 
+  { color: '#FFF', 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  },
 });

@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'; // Para navegar a la pantalla de detall
 import React, { useState } from 'react';
 import { FlatList, StyleSheet, TextInput, View } from 'react-native';
 import MatchCard from '../../src/components/MatchCard';
-import { mockMatches } from '../consts/matches';
+import mockMatches from '../consts/matches';
 
 
 
