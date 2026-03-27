@@ -2,7 +2,23 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function MatchCard({ match, onPress }) {
+interface MatchData {
+  match: { 
+    id_partido : number,
+    local_logo: string,
+    rival_logo: string,
+    status: string,
+    fecha : Date,
+    score_local?: number,
+    score_rival?: number
+  },
+
+  onPress: () => any
+
+}
+
+
+export default function MatchCard({ match, onPress }: MatchData) {
   // Función para decidir qué renderizar en el centro
   const renderCenterContent = () => {
     if (match.status === 'played') {

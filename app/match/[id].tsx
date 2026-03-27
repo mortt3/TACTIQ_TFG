@@ -1,28 +1,24 @@
 // Archivo: app/match/[id].tsx
 import { FontAwesome } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import TimelineItem from '../../src/components/TimelineItem';
+import { mockMatches} from '../consts/matches';
+import { initialEvents } from '../consts/events';
 
-// MOCK DATA: Eventos simulados de la base de datos
-const initialEvents = [
-  { id: '1', minute: 12, type: 'gol', playerName: 'Joel Romero', playerNumber: 18 },
-  { id: '2', minute: 24, type: 'amarilla', playerName: 'Carlos Pérez', playerNumber: 5 },
-  { id: '3', minute: 35, type: '2min', playerName: 'Luis Gómez', playerNumber: 10 },
-  { id: '4', minute: 48, type: 'gol', playerName: 'Joel Romero', playerNumber: 18 },
-];
+
+
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams(); // Recibimos el ID del partido pulsado
   const [events, setEvents] = useState(initialEvents);
-
+  const match = mockMatches.find(m => m.id_partido === Number(id)); // Buscamos los datos del partido usando el ID
+  const router = useRouter(); 
+  
   // Simulación del botón de la IA
   const handleUploadVideo = () => {
-    Alert.alert(
-      "Procesando con IA", 
-      "Aquí se subirá el vídeo a tu backend. La IA de Google (Gemini) podría analizar los frames y devolver un JSON con los minutos de los goles y sanciones."
-    );
+    router.push(`/upload-video/${id}`);
   };
 
   // Simulación de añadir evento manual (lápiz superior)
@@ -30,7 +26,7 @@ export default function MatchDetailScreen() {
     Alert.alert("Añadir", "Aquí abriremos el modal para añadir Gol, Amarilla o Roja y asociarlo a un jugador.");
   };
 
-  const handleEditEvent = (event) => {
+  const handleEditEvent = (event: any) => {
     Alert.alert("Editar Evento", `Editando el ${event.type} de ${event.playerName} en el min ${event.minute}`);
   };
 
@@ -39,8 +35,8 @@ export default function MatchDetailScreen() {
       {/* HEADER DEL PARTIDO */}
       <View style={styles.headerCard}>
         <Text style={styles.vsText}>Balonmano Zaragoza VS Rival</Text>
-        <Text style={styles.scoreText}>34 - 23</Text>
-        <Text style={styles.statusText}>Partido Finalizado</Text>
+        <Text style={styles.scoreText}>{match?.score_local} - {match?.score_rival}</Text>
+        <Text style={styles.statusText}>{match?.status}</Text>
       </View>
 
       {/* BOTONERA DE ACCIONES */}
