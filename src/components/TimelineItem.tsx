@@ -2,18 +2,13 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { TimelineEvent } from './AddEventModal';
 
 type FontAwesomeIconName = React.ComponentProps<typeof FontAwesome>['name'];
 
 interface TimeLineData {
-  event: {
-    id: string,
-    minute: number,
-    type: string, // 'gol', 'amarilla', 'roja', '2min'
-    playerName: string,
-    playerNumber: number
-  },
-  onEdit: (event: any) => void
+  event: TimelineEvent,
+  onEdit: (event: TimelineEvent) => void
 }
   
 

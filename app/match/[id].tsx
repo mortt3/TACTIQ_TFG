@@ -2,7 +2,8 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AddEventModal, { TimelineEvent } from '../../src/components/AddEventModal';
 import TimelineItem from '../../src/components/TimelineItem';
 import mockMatches from '../consts/matches';
 import  initialEvents  from '../consts/events';
@@ -13,6 +14,8 @@ import  initialEvents  from '../consts/events';
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams(); // Recibimos el ID del partido pulsado
   const [events, setEvents] = useState(initialEvents);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<TimelineEvent | null>(null);
   const match = mockMatches.find(m => m.id_partido === Number(id)); // Buscamos los datos del partido usando el ID
   const router = useRouter(); 
   
@@ -23,11 +26,26 @@ export default function MatchDetailScreen() {
 
   // Simulación de añadir evento manual (lápiz superior)
   const handleAddEvent = () => {
-    Alert.alert("Añadir", "Aquí abriremos el modal para añadir Gol, Amarilla o Roja y asociarlo a un jugador.");
+    setEventToEdit(null);
+    setIsAddModalVisible(true);
   };
 
-  const handleEditEvent = (event: any) => {
-    Alert.alert("Editar Evento", `Editando el ${event.type} de ${event.playerName} en el min ${event.minute}`);
+  const handleSaveNewEvent = (newEvent: TimelineEvent) => {
+    setEvents((prevEvents) => {
+      const eventExists = prevEvents.some((event) => event.id === newEvent.id);
+      if (eventExists) {
+        return prevEvents.map((event) => (event.id === newEvent.id ? newEvent : event));
+      }
+
+      return [newEvent, ...prevEvents];
+    });
+    setEventToEdit(null);
+    setIsAddModalVisible(false);
+  };
+
+  const handleEditEvent = (event: TimelineEvent) => {
+    setEventToEdit(event);
+    setIsAddModalVisible(true);
   };
 
   return (
@@ -64,6 +82,16 @@ export default function MatchDetailScreen() {
           showsVerticalScrollIndicator={false}
         />
       </View>
+
+      <AddEventModal
+        visible={isAddModalVisible}
+        onClose={() => {
+          setIsAddModalVisible(false);
+          setEventToEdit(null);
+        }}
+        onSave={handleSaveNewEvent}
+        eventToEdit={eventToEdit}
+      />
     </View>
   );
 }
