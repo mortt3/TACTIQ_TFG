@@ -3,20 +3,34 @@ import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function TimelineItem({ event, onEdit }) {
+type FontAwesomeIconName = React.ComponentProps<typeof FontAwesome>['name'];
+
+interface TimeLineData {
+  event: {
+    id: string,
+    minute: number,
+    type: string, // 'gol', 'amarilla', 'roja', '2min'
+    playerName: string,
+    playerNumber: number
+  },
+  onEdit: (event: any) => void
+}
+  
+
+export default function TimelineItem({ event, onEdit }: TimeLineData) {
   // Función para devolver el icono y color según el tipo de evento
-  const getEventStyle = () => {
+  const getEventStyle = (): { icon: FontAwesomeIconName; color: string; label: string } => {
     switch (event.type) {
       case 'gol':
-        return { icon: 'soccer-ball-o', color: '#28a745', label: 'Gol' };
+        return { icon: "soccer-ball-o", color: '#28a745', label: 'Gol' };
       case 'amarilla':
-        return { icon: 'square', color: '#ffc107', label: 'T. Amarilla' };
+        return { icon: "square", color: '#ffc107', label: 'T. Amarilla' };
       case 'roja':
-        return { icon: 'square', color: '#dc3545', label: 'T. Roja' };
+        return { icon: "square", color: '#dc3545', label: 'T. Roja' };
       case '2min':
-        return { icon: 'clock-o', color: '#17a2b8', label: 'Exclusión 2m' };
+        return { icon: "clock-o", color: '#17a2b8', label: 'Exclusión 2m' };
       default:
-        return { icon: 'circle', color: '#6c757d', label: 'Evento' };
+        return { icon: "circle", color: '#6c757d', label: 'Evento' };
     }
   };
 
