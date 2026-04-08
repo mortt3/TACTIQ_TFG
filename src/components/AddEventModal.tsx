@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext'; // Importamos el contexto global
 
 type EventType = 'gol' | 'amarilla' | '2min' | 'roja';
 
@@ -33,6 +34,8 @@ const actionTypes: { id: EventType; label: string; color: string }[] = [
 ];
 
 export default function AddEventModal({ visible, onClose, onSave, eventToEdit = null }: AddEventModalProps) {
+  const { theme } = useTheme(); // Extraemos el tema actual
+  
   const [minute, setMinute] = useState('');
   const [type, setType] = useState<EventType>('gol');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
@@ -79,46 +82,61 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.title}>{eventToEdit ? 'Editar evento' : 'Añadir evento'}</Text>
+        <View style={[styles.modalContent, { backgroundColor: theme.card }]}>
+          <Text style={[styles.title, { color: theme.text }]}>
+            {eventToEdit ? 'Editar evento' : 'Añadir evento'}
+          </Text>
 
-          <Text style={styles.label}>Minuto del partido</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Minuto del partido</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: theme.border, color: theme.text }]}
             keyboardType="number-pad"
             placeholder="Ej: 12"
+            placeholderTextColor={theme.textSecondary}
             value={minute}
             onChangeText={setMinute}
           />
 
-          <Text style={styles.label}>Tipo de acción</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Tipo de acción</Text>
           <View style={styles.actionRow}>
             {actionTypes.map((action) => (
               <TouchableOpacity
                 key={action.id}
                 style={[
                   styles.actionButton,
+                  { borderColor: theme.border }, // Borde dinámico
                   type === action.id && { backgroundColor: action.color, borderColor: action.color },
                 ]}
                 onPress={() => setType(action.id)}
               >
-                <Text style={[styles.actionText, type === action.id && styles.actionTextSelected]}>{action.label}</Text>
+                <Text style={[
+                  styles.actionText, 
+                  { color: theme.text }, // Texto dinámico
+                  type === action.id && styles.actionTextSelected
+                ]}>
+                  {action.label}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <Text style={styles.label}>Jugador</Text>
+          <Text style={[styles.label, { color: theme.textSecondary }]}>Jugador</Text>
           <ScrollView style={styles.playerList}>
             {mockPlayers.map((player) => (
               <TouchableOpacity
                 key={player.id}
                 style={[
                   styles.playerItem,
-                  selectedPlayerId === player.id && styles.playerItemSelected,
+                  { borderColor: theme.border }, // Borde dinámico
+                  selectedPlayerId === player.id && { backgroundColor: theme.primary, borderColor: theme.primary },
                 ]}
                 onPress={() => setSelectedPlayerId(player.id)}
               >
-                <Text style={[styles.playerText, selectedPlayerId === player.id && styles.playerTextSelected]}>
+                <Text style={[
+                  styles.playerText, 
+                  { color: theme.text }, // Texto dinámico
+                  selectedPlayerId === player.id && styles.playerTextSelected
+                ]}>
                   {player.dorsal} - {player.nombre}
                 </Text>
               </TouchableOpacity>
@@ -129,8 +147,8 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveText}>Guardar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+            <TouchableOpacity style={[styles.cancelButton, { backgroundColor: theme.background }]} onPress={onClose}>
+              <Text style={[styles.cancelText, { color: theme.text }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -139,15 +157,15 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
   );
 }
 
+// ESTILOS: Se han limpiado los colores estáticos vinculados a fondos, bordes y textos (excepto el verde de guardar y los seleccionados)
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)', // Un poco más oscuro para que contraste mejor
     justifyContent: 'center',
   },
   modalContent: {
     margin: 20,
-    backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
     maxHeight: '80%',
@@ -160,10 +178,10 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 8,
     marginBottom: 4,
+    fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
     padding: 8,
     borderRadius: 6,
   },
@@ -175,13 +193,12 @@ const styles = StyleSheet.create({
   actionButton: {
     padding: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 6,
     marginRight: 8,
     marginBottom: 8,
   },
   actionText: {
-    color: '#333',
+    fontWeight: '500',
   },
   actionTextSelected: {
     color: '#fff',
@@ -192,17 +209,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   playerItem: {
-    padding: 8,
+    padding: 12,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#eee',
     marginBottom: 6,
   },
-  playerItemSelected: {
-    backgroundColor: '#333',
-  },
   playerText: {
-    color: '#333',
+    fontSize: 15,
   },
   playerTextSelected: {
     color: '#fff',
@@ -211,11 +224,11 @@ const styles = StyleSheet.create({
   footerButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 15,
   },
   saveButton: {
     backgroundColor: '#28a745',
-    padding: 10,
+    padding: 12,
     borderRadius: 6,
     flex: 1,
     marginRight: 8,
@@ -224,16 +237,17 @@ const styles = StyleSheet.create({
   saveText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   cancelButton: {
-    backgroundColor: '#ddd',
-    padding: 10,
+    padding: 12,
     borderRadius: 6,
     flex: 1,
     marginLeft: 8,
     alignItems: 'center',
   },
   cancelText: {
-    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

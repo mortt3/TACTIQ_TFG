@@ -1,9 +1,10 @@
 import { useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import GoalZoneMap from '../../src/components/GoalZoneMap';
+import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto
 
 export default function PlayerDetailScreen() {
+  const { theme } = useTheme(); // Extraemos el tema actual
   const { id } = useLocalSearchParams();
 
   // MOCK DATA DEL JUGADOR
@@ -18,81 +19,153 @@ export default function PlayerDetailScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* CABECERA */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Image source={{ uri: player.foto_url }} style={styles.photo} />
-        <Text style={styles.name}>{player.nombre}</Text>
+        <Text style={[styles.name, { color: theme.text }]}>{player.nombre}</Text>
         <View style={styles.badgeRow}>
-          <Text style={styles.badge}>Dorsal {player.dorsal}</Text>
-          <Text style={styles.badge}>{player.posicion}</Text>
+          <Text style={[styles.badge, { backgroundColor: theme.background, color: theme.textSecondary }]}>
+            Dorsal {player.dorsal}
+          </Text>
+          <Text style={[styles.badge, { backgroundColor: theme.background, color: theme.textSecondary }]}>
+            {player.posicion}
+          </Text>
         </View>
       </View>
 
       {/* BLOQUE DE 4 ESTADÍSTICAS */}
       <View style={styles.statsGrid}>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Lanzados</Text>
-          <Text style={styles.statValue}>{player.stats.lanzados}</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Lanzados</Text>
+          <Text style={[styles.statValue, { color: theme.text }]}>{player.stats.lanzados}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Goles</Text>
-          <Text style={styles.statValue}>{player.stats.goles}</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Goles</Text>
+          <Text style={[styles.statValue, { color: theme.text }]}>{player.stats.goles}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Sanciones</Text>
-          <Text style={styles.statValue}>{player.stats.sanciones}</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Sanciones</Text>
+          <Text style={[styles.statValue, { color: theme.text }]}>{player.stats.sanciones}</Text>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Valoración</Text>
+        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Valoración</Text>
           <Text style={[styles.statValue, { color: '#28a745' }]}>{player.stats.valoracion}</Text>
         </View>
       </View>
 
       {/* DESGLOSE POR ZONA */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Desglose por zona</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.cell, styles.headerText]}>Zona</Text>
-            <Text style={[styles.cell, styles.headerText]}>Lanz</Text>
-            <Text style={[styles.cell, styles.headerText]}>Gol</Text>
-            <Text style={[styles.cell, styles.headerText]}>Eficacia</Text>
+      <View style={[styles.section, { backgroundColor: theme.card, borderTopColor: theme.border, borderBottomColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Desglose por zona</Text>
+        
+        <View style={[styles.table, { borderColor: theme.border }]}>
+          <View style={[styles.tableHeader, { backgroundColor: theme.background, borderBottomColor: theme.border }]}>
+            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Zona</Text>
+            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Lanz</Text>
+            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Gol</Text>
+            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Eficacia</Text>
           </View>
+          
           {player.zonas.map((z, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.cell}>{z.zona}</Text>
-              <Text style={styles.cell}>{z.lanz}</Text>
-              <Text style={styles.cell}>{z.gol}</Text>
-              <Text style={[styles.cell, { fontWeight: 'bold' }]}>{z.ef}</Text>
+            <View key={index} style={[styles.tableRow, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.cell, { color: theme.text }]}>{z.zona}</Text>
+              <Text style={[styles.cell, { color: theme.text }]}>{z.lanz}</Text>
+              <Text style={[styles.cell, { color: theme.text }]}>{z.gol}</Text>
+              <Text style={[styles.cell, { color: theme.text, fontWeight: 'bold' }]}>{z.ef}</Text>
             </View>
           ))}
         </View>
       </View>
 
-      {/* MAPA DE PORTERÍA */}
-      <GoalZoneMap />
-
     </ScrollView>
   );
 }
 
+// ESTILOS: Limpios de colores estáticos (hemos dejado solo el layout y el verde de la valoración)
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F9FA' },
-  header: { alignItems: 'center', backgroundColor: '#FFF', padding: 20, borderBottomWidth: 1, borderColor: '#E0E0E0' },
-  photo: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
-  name: { fontSize: 24, fontWeight: 'bold', color: '#333' },
-  badgeRow: { flexDirection: 'row', marginTop: 10 },
-  badge: { backgroundColor: '#E9ECEF', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 15, marginHorizontal: 5, fontSize: 14, color: '#555' },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 10, justifyContent: 'space-between' },
-  statBox: { width: '48%', backgroundColor: '#FFF', padding: 20, borderRadius: 10, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E0E0E0' },
-  statLabel: { fontSize: 14, color: '#888', marginBottom: 5 },
-  statValue: { fontSize: 28, fontWeight: 'bold', color: '#333' },
-  section: { backgroundColor: '#FFF', padding: 20, marginTop: 10, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#E0E0E0' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  table: { borderWidth: 1, borderColor: '#EEE', borderRadius: 8, overflow: 'hidden' },
-  tableHeader: { flexDirection: 'row', backgroundColor: '#F8F9FA', padding: 10, borderBottomWidth: 1, borderColor: '#EEE' },
-  tableRow: { flexDirection: 'row', padding: 10, borderBottomWidth: 1, borderColor: '#EEE' },
-  cell: { flex: 1, textAlign: 'center', color: '#333' },
-  headerText: { fontWeight: 'bold', color: '#666' }
+  container: { 
+    flex: 1 
+  },
+  header: { 
+    alignItems: 'center', 
+    padding: 20, 
+    borderBottomWidth: 1 
+  },
+  photo: { 
+    width: 100, 
+    height: 100, 
+    borderRadius: 50, 
+    marginBottom: 10,
+    backgroundColor: '#CCC' // Color de fondo temporal para la imagen si tarda en cargar
+  },
+  name: { 
+    fontSize: 24, 
+    fontWeight: 'bold' 
+  },
+  badgeRow: { 
+    flexDirection: 'row', 
+    marginTop: 10 
+  },
+  badge: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 5, 
+    borderRadius: 15, 
+    marginHorizontal: 5, 
+    fontSize: 14 
+  },
+  statsGrid: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    padding: 10, 
+    justifyContent: 'space-between' 
+  },
+  statBox: { 
+    width: '48%', 
+    padding: 20, 
+    borderRadius: 10, 
+    alignItems: 'center', 
+    marginBottom: 10, 
+    borderWidth: 1 
+  },
+  statLabel: { 
+    fontSize: 14, 
+    marginBottom: 5 
+  },
+  statValue: { 
+    fontSize: 28, 
+    fontWeight: 'bold' 
+  },
+  section: { 
+    padding: 20, 
+    marginTop: 10, 
+    borderTopWidth: 1, 
+    borderBottomWidth: 1 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    marginBottom: 15 
+  },
+  table: { 
+    borderWidth: 1, 
+    borderRadius: 8, 
+    overflow: 'hidden' 
+  },
+  tableHeader: { 
+    flexDirection: 'row', 
+    padding: 10, 
+    borderBottomWidth: 1 
+  },
+  tableRow: { 
+    flexDirection: 'row', 
+    padding: 10, 
+    borderBottomWidth: 1 
+  },
+  cell: { 
+    flex: 1, 
+    textAlign: 'center' 
+  },
+  headerText: { 
+    fontWeight: 'bold' 
+  }
 });

@@ -1,10 +1,11 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from 'react';
-import { View, Button, Text, Alert, ActivityIndicator, StyleSheet } from 'react-native';
-import * as ImagePicker from 'expo-image-picker'; 
-
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto (Ajusta la ruta si es necesario)
 
 export default function UploadVideoScreen() {
+    const { theme } = useTheme(); // Extraemos el tema actual
     const { id } = useLocalSearchParams();
     const [loading, setLoading] = useState(false);
 
@@ -66,24 +67,75 @@ export default function UploadVideoScreen() {
     };
 
     return (
-        <>
-            <View style={styles.container}>
-                <Text style={styles.title}>Subir vídeo del partido</Text>
-                <Text style={styles.description}>Aquí podrás subir el vídeo del partido para que la IA lo analice y extraiga los eventos clave como goles y sanciones.</Text>
+        /* Unificamos todo en un solo contenedor principal para que el fondo cubra el 100% */
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={styles.textContainer}>
+                <Text style={[styles.title, { color: theme.text }]}>Subir vídeo del partido</Text>
+                <Text style={[styles.description, { color: theme.textSecondary }]}>
+                    Aquí podrás subir el vídeo del partido para que la IA lo analice y extraiga los eventos clave como goles y sanciones.
+                </Text>
             </View>
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            
+            <View style={styles.actionContainer}>
                 {loading ? (
-                    <ActivityIndicator size="large" color="#0000ff" />
+                    <ActivityIndicator size="large" color={theme.primary} />
                 ) : (
-                    <Button title="Seleccionar y Subir Video" onPress={selectAndUploadVideo} />
+                    /* Cambiamos el Button por TouchableOpacity para que encaje con tu diseño */
+                    <TouchableOpacity 
+                        style={[styles.uploadButton, { backgroundColor: theme.primary }]} 
+                        onPress={selectAndUploadVideo}
+                    >
+                        <Text style={styles.buttonText}>Seleccionar y Subir Video</Text>
+                    </TouchableOpacity>
                 )}
             </View>
-        </>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
-    description: { fontSize: 16, color: '#666', textAlign: 'center' },
+    container: { 
+        flex: 1, 
+    },
+    textContainer: {
+        flex: 1,
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        padding: 20,
+    },
+    title: { 
+        fontSize: 24, 
+        fontWeight: 'bold', 
+        marginBottom: 10,
+        textAlign: 'center'
+    },
+    description: { 
+        fontSize: 16, 
+        textAlign: 'center',
+        lineHeight: 24,
+    },
+    actionContainer: {
+        flex: 1, 
+        justifyContent: 'flex-start', 
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    uploadButton: {
+        paddingVertical: 15,
+        paddingHorizontal: 30,
+        borderRadius: 8,
+        width: '100%',
+        alignItems: 'center',
+        // Sombras para darle un toque más pro
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    buttonText: {
+        color: '#FFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    }
 });

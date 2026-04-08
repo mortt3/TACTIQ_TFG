@@ -5,26 +5,24 @@ import React, { useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AddEventModal, { TimelineEvent } from '../../src/components/AddEventModal';
 import TimelineItem from '../../src/components/TimelineItem';
+import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto
+import initialEvents from '../consts/events';
 import mockMatches from '../consts/matches';
-import  initialEvents  from '../consts/events';
-
-
-
 
 export default function MatchDetailScreen() {
-  const { id } = useLocalSearchParams(); // Recibimos el ID del partido pulsado
+  const { theme } = useTheme(); // Extraemos el tema actual
+
+  const { id } = useLocalSearchParams();
   const [events, setEvents] = useState(initialEvents);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<TimelineEvent | null>(null);
-  const match = mockMatches.find(m => m.id_partido === Number(id)); // Buscamos los datos del partido usando el ID
+  const match = mockMatches.find(m => m.id_partido === Number(id));
   const router = useRouter(); 
   
-  // Simulación del botón de la IA
   const handleUploadVideo = () => {
     router.push(`/upload-video/${id}`);
   };
 
-  // Simulación de añadir evento manual (lápiz superior)
   const handleAddEvent = () => {
     setEventToEdit(null);
     setIsAddModalVisible(true);
@@ -36,7 +34,6 @@ export default function MatchDetailScreen() {
       if (eventExists) {
         return prevEvents.map((event) => (event.id === newEvent.id ? newEvent : event));
       }
-
       return [newEvent, ...prevEvents];
     });
     setEventToEdit(null);
@@ -49,11 +46,11 @@ export default function MatchDetailScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER DEL PARTIDO */}
-      <View style={styles.headerCard}>
-        <Text style={styles.vsText}>Balonmano Zaragoza VS Rival</Text>
-        <Text style={styles.scoreText}>{match?.score_local} - {match?.score_rival}</Text>
+      <View style={[styles.headerCard, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <Text style={[styles.vsText, { color: theme.textSecondary }]}>Balonmano Zaragoza VS Rival</Text>
+        <Text style={[styles.scoreText, { color: theme.text }]}>{match?.score_local} - {match?.score_rival}</Text>
         <Text style={styles.statusText}>{match?.status}</Text>
       </View>
 
@@ -64,7 +61,7 @@ export default function MatchDetailScreen() {
           <Text style={styles.aiButtonText}>Cargar vídeo (IA)</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.addButton} onPress={handleAddEvent}>
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.primary }]} onPress={handleAddEvent}>
           <FontAwesome name="pencil" size={20} color="#FFF" style={{ marginRight: 10 }} />
           <Text style={styles.addButtonText}>Añadir manual</Text>
         </TouchableOpacity>
@@ -72,7 +69,7 @@ export default function MatchDetailScreen() {
 
       {/* LÍNEA DE TIEMPO */}
       <View style={styles.timelineContainer}>
-        <Text style={styles.sectionTitle}>Línea de Tiempo</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Línea de Tiempo</Text>
         <FlatList
           data={events}
           keyExtractor={(item) => item.id}
@@ -96,31 +93,27 @@ export default function MatchDetailScreen() {
   );
 }
 
+// ESTILOS: Se han limpiado los colores estáticos de fondos y textos adaptables
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   headerCard: {
-    backgroundColor: '#FFF',
     padding: 20,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: '#E0E0E0',
   },
   vsText: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 5,
   },
   scoreText: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#333',
   },
   statusText: {
     fontSize: 14,
-    color: '#28a745',
+    color: '#28a745', // Verde semántico mantenido
     fontWeight: '600',
     marginTop: 5,
   },
@@ -132,7 +125,7 @@ const styles = StyleSheet.create({
   aiButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#6f42c1', // Morado para cosas de IA
+    backgroundColor: '#6f42c1', // Morado semántico de IA mantenido
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -147,7 +140,6 @@ const styles = StyleSheet.create({
   addButton: {
     flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#007BFF', // Azul estándar
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -167,6 +159,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 15,
     marginBottom: 15,
-    color: '#333',
   }
 });

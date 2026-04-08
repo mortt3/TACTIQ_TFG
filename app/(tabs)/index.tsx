@@ -1,36 +1,51 @@
 // Archivo: app/(tabs)/index.tsx
-import { useRouter } from 'expo-router'; // Para navegar a la pantalla de detalles
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, View } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import MatchCard from '../../src/components/MatchCard';
+import { useTheme } from '../../src/context/ThemeContext';
 import mockMatches from '../consts/matches';
-
-
 
 export default function MatchListScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Cuando tocas un partido, navegamos a la pantalla de detalles pasándole el ID
+  // LÓGICA DE FILTRADO DE PARTIDOS
+  const filteredMatches = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (query === '') return mockMatches;
+
+    return mockMatches.filter((match) => {
+      return (
+        match.local_nombre.toLowerCase().includes(query) ||
+        match.rival_nombre.toLowerCase().includes(query)
+      );
+    });
+  }, [searchQuery]);
+
   const handlePressMatch = (id_partido: number) => {
     router.push(`/match/${id_partido}`);
   };
 
   return (
-    <View style={styles.container}>
-      {/* Buscador */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="🔍 Buscar partido o equipo..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.searchContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: theme.background }]}>
+          <FontAwesome name="search" size={18} color={theme.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Buscar por equipo..."
+            placeholderTextColor={theme.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
-      {/* Listado de Partidos */}
       <FlatList
-        data={mockMatches}
+        data={filteredMatches}
         keyExtractor={(item) => item.id_partido.toString()}
         renderItem={({ item }) => (
           <MatchCard 
@@ -39,30 +54,22 @@ export default function MatchListScreen() {
           />
         )}
         contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={{ color: theme.textSecondary }}>No hay partidos que coincidan</Text>
+          </View>
+        }
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA', // Un fondo gris muy clarito para que las tarjetas resalten
-  },
-  searchContainer: {
-    padding: 15,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  searchInput: {
-    backgroundColor: '#F0F2F5',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  listContent: {
-    padding: 15,
-  },
+  container: { flex: 1 },
+  searchContainer: { padding: 15, borderBottomWidth: 1 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', borderRadius: 8, paddingHorizontal: 12 },
+  searchIcon: { marginRight: 8 },
+  searchInput: { flex: 1, paddingVertical: 10, fontSize: 16 },
+  listContent: { padding: 15 },
+  emptyContainer: { alignItems: 'center', marginTop: 50 },
 });

@@ -2,6 +2,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext'; // Importamos el contexto global
 import { TimelineEvent } from './AddEventModal';
 
 type FontAwesomeIconName = React.ComponentProps<typeof FontAwesome>['name'];
@@ -10,9 +11,10 @@ interface TimeLineData {
   event: TimelineEvent,
   onEdit: (event: TimelineEvent) => void
 }
-  
 
 export default function TimelineItem({ event, onEdit }: TimeLineData) {
+  const { theme } = useTheme(); // Extraemos el tema actual
+
   // Función para devolver el icono y color según el tipo de evento
   const getEventStyle = (): { icon: FontAwesomeIconName; color: string; label: string } => {
     switch (event.type) {
@@ -35,29 +37,32 @@ export default function TimelineItem({ event, onEdit }: TimeLineData) {
     <View style={styles.container}>
       {/* Minuto */}
       <View style={styles.timeBox}>
-        <Text style={styles.timeText}>{event.minute}'</Text>
+        <Text style={[styles.timeText, { color: theme.text }]}>{event.minute}'</Text>
       </View>
 
-      {/* Línea conectora */}
-      <View style={styles.line} />
+      {/* Línea conectora adaptada al tema */}
+      <View style={[styles.line, { backgroundColor: theme.border }]} />
 
-      {/* Contenido del evento */}
-      <View style={styles.contentBox}>
+      {/* Contenido del evento con caja adaptada */}
+      <View style={[styles.contentBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <View style={styles.eventHeader}>
           <FontAwesome name={styleDef.icon} size={16} color={styleDef.color} style={{ marginRight: 8 }} />
           <Text style={[styles.eventLabel, { color: styleDef.color }]}>{styleDef.label}</Text>
         </View>
-        <Text style={styles.playerName}>{event.playerName} (Dorsal {event.playerNumber})</Text>
+        <Text style={[styles.playerName, { color: theme.textSecondary }]}>
+          {event.playerName} (Dorsal {event.playerNumber})
+        </Text>
       </View>
 
-      {/* Botón de editar (el lápiz) */}
+      {/* Botón de editar (el lápiz) adaptado al color primario del tema */}
       <TouchableOpacity onPress={() => onEdit(event)} style={styles.editButton}>
-        <FontAwesome name="pencil" size={20} color="#007BFF" />
+        <FontAwesome name="pencil" size={20} color={theme.primary} />
       </TouchableOpacity>
     </View>
   );
 }
 
+// ESTILOS: He quitado todos los colores fijos
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -72,21 +77,17 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   line: {
     width: 2,
     height: '150%',
-    backgroundColor: '#dee2e6',
     marginHorizontal: 10,
   },
   contentBox: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e9ecef',
   },
   eventHeader: {
     flexDirection: 'row',
@@ -99,7 +100,6 @@ const styles = StyleSheet.create({
   },
   playerName: {
     fontSize: 16,
-    color: '#495057',
   },
   editButton: {
     padding: 10,
