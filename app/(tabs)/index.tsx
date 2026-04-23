@@ -1,33 +1,73 @@
-// Archivo: app/(tabs)/index.tsx
 import { FontAwesome } from '@expo/vector-icons';
+import axios from 'axios';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import MatchCard from '../../src/components/MatchCard';
 import { useTheme } from '../../src/context/ThemeContext';
-import mockMatches from '../consts/matches';
+
+// 1. LA INTERFACE SIEMPRE FUERA DE LA FUNCIÓN
+interface Partido {
+  idPartido: number;
+  idEquipoLocal: number;
+  idEquipoVisitante: number;
+  golesLocal: number;
+  golesVisitante: number;
+  fecha: string;
+  equipoLocal: string;     // Añadido porque lo usas en el filtro
+  equipoVisitante: string;  // Añadido porque lo usas en el filtro
+  lugar?: string;
+}
 
 export default function MatchListScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // LÓGICA DE FILTRADO DE PARTIDOS
+  // 2. USA SOLO UN ESTADO QUE SEA DEL TIPO PARTIDO[]
+  const [matches, setMatches] = useState<Partido[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        // Asegúrate de que esta IP sea la correcta de tu PC hoy
+        const response = await axios.get('http://192.168.1.137:5268/api/partidos');
+        setMatches(response.data);
+      } catch (error) {
+        console.error("Error cargando partidos reales:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, []);
+
   const filteredMatches = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    if (query === '') return mockMatches;
+    if (query === '') return matches;
 
-    return mockMatches.filter((match) => {
+    return matches.filter((match) => {
+      // Ahora match ya sabe que tiene equipoLocal gracias a la interface
       return (
-        match.local_nombre.toLowerCase().includes(query) ||
-        match.rival_nombre.toLowerCase().includes(query)
+        match.equipoLocal.toLowerCase().includes(query) ||
+        match.equipoVisitante.toLowerCase().includes(query)
       );
     });
-  }, [searchQuery]);
+  }, [searchQuery, matches]);
 
   const handlePressMatch = (id_partido: number) => {
     router.push(`/match/${id_partido}`);
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -46,17 +86,17 @@ export default function MatchListScreen() {
 
       <FlatList
         data={filteredMatches}
-        keyExtractor={(item) => item.id_partido.toString()}
-        renderItem={({ item }) => (
-          <MatchCard 
-            match={item} 
-            onPress={() => handlePressMatch(item.id_partido)} 
+        keyExtractor={(item) => item.idPartido.toString()}
+        renderItem={({ item }: { item: any }) => (
+          <MatchCard
+            match={item}
+            onPress={() => handlePressMatch(item.idPartido)}
           />
         )}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={{ color: theme.textSecondary }}>No hay partidos que coincidan</Text>
+            <Text style={{ color: theme.textSecondary }}>No hay partidos reales en la base de datos</Text>
           </View>
         }
       />

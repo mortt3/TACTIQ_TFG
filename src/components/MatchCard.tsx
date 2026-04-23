@@ -5,12 +5,12 @@ import { useTheme } from '../context/ThemeContext';
 interface MatchData {
   match: { 
     id_partido : number,
-    local_nombre: string, // Nuevo campo
-    rival_nombre: string, // Nuevo campo
+    local_nombre: string,
+    rival_nombre: string,
     local_logo: string,
     rival_logo: string,
     status: string,
-    fecha : Date,
+    fecha : string | null, // Cambiado a string porque viene de la API
     score_local?: number,
     score_rival?: number
   },
@@ -20,27 +20,45 @@ interface MatchData {
 export default function MatchCard({ match, onPress }: MatchData) {
   const { theme } = useTheme();
 
-  // Formateador de fecha sencillo (DD/MM/YY)
-  const dateString = match.fecha.toLocaleDateString('es-ES', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  });
+  // Cambiar la fecha por si los partidos aun no tienen fecha asignada
+  let dateString = "TBD"; // Texto por defecto (To Be Determined)
+  let timeString = "--:--";
+
+  // Verificamos si hay una fecha válida y no es la fecha vacía de .NET (0001...)
+  if (match.fecha && !match.fecha.startsWith("0001")) {
+    const dateObj = new Date(match.fecha);
+    
+    // Si la fecha es válida para JS
+    if (!isNaN(dateObj.getTime())) {
+      dateString = dateObj.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      });
+      
+      timeString = dateObj.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+  }
 
   const renderCenterContent = () => {
+    // Si el partido ya se jugó
     if (match.status === 'played') {
       return (
         <View style={styles.centerWrapper}>
           <Text style={[styles.scoreText, { color: theme.text }]}>
-            {match.score_local}  -  {match.score_rival}
+            {match.score_local ?? 0}  -  {match.score_rival ?? 0}
           </Text>
           <Text style={[styles.dateTextSmall, { color: theme.textSecondary }]}>
             {dateString}
           </Text>
         </View>
       );
-    } else if (match.status === 'next') {
-      const timeString = match.fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } 
+    // Si es el próximo partido con hora confirmada
+    else if (match.status === 'next') {
       return (
         <View style={styles.centerWrapper}>
           <Text style={[styles.timeText, { color: theme.text }]}>{timeString}</Text>
@@ -49,7 +67,9 @@ export default function MatchCard({ match, onPress }: MatchData) {
           </Text>
         </View>
       );
-    } else {
+    } 
+    // Para partidos programados a futuro sin fecha/hora exacta
+    else {
       return (
         <View style={styles.centerWrapper}>
           <Text style={[styles.futureText, { color: theme.textSecondary }]}>--</Text>
@@ -68,7 +88,7 @@ export default function MatchCard({ match, onPress }: MatchData) {
     >
       {/* Equipo Local */}
       <View style={styles.teamSide}>
-        <Image source={{ uri: match.local_logo }} style={styles.logo} />
+        <Image source={{ uri: match.local_logo || 'https://via.placeholder.com/45' }} style={styles.logo} />
         <Text numberOfLines={1} style={[styles.teamName, { color: theme.text }]}>
             {match.local_nombre}
         </Text>
@@ -81,7 +101,7 @@ export default function MatchCard({ match, onPress }: MatchData) {
 
       {/* Equipo Rival */}
       <View style={styles.teamSide}>
-        <Image source={{ uri: match.rival_logo }} style={styles.logo} />
+        <Image source={{ uri: match.rival_logo || 'https://via.placeholder.com/45' }} style={styles.logo} />
         <Text numberOfLines={1} style={[styles.teamName, { color: theme.text }]}>
             {match.rival_nombre}
         </Text>

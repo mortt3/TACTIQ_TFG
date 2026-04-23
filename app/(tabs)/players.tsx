@@ -1,36 +1,63 @@
 import { FontAwesome } from '@expo/vector-icons';
+import axios from 'axios';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react'; // Añadido useEffect
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import PlayerListItem from '../../src/components/PlayerListItem';
 import { useTheme } from '../../src/context/ThemeContext';
-import mockPlayers from '../consts/players';
+
+interface Jugador {
+  idJugador: number;     
+  nombreJugador: string; 
+  dorsal: number;
+  idPosicion: string;   
+  edad: string;
+  imagenJugador?: string;
+}
 
 export default function PlayersScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const [search, setSearch] = useState('');
 
-  // LÓGICA DE FILTRADO
-  // useMemo hace que el filtrado solo se ejecute cuando cambia el texto de 'search'
+  // estados para api
+  const [players, setPlayers] = useState<Jugador[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  //conectarse  a la api para datos reales
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        // Usa tu IP local y el puerto 5268
+        const response = await axios.get('http://192.168.1.137:5268/api/jugadores');
+        setPlayers(response.data);
+      } catch (error) {
+        console.error("Error cargando jugadores:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlayers();
+  }, []);
+
+  // filtrado
   const filteredPlayers = useMemo(() => {
     const query = search.toLowerCase().trim();
-    
-    if (query === '') return mockPlayers;
+    if (query === '') return players;
 
-    return mockPlayers.filter((player) => {
-      // 1. Buscamos por nombre
-      const nameMatch = player.nombre.toLowerCase().includes(query);
-      
-      // 2. Buscamos por posición
-      const positionMatch = player.posicion.toLowerCase().includes(query);
-      
-      // 3. Buscamos por dorsal (convertimos el número a string)
-      const dorsalMatch = player.dorsal.toString().includes(query);
+    return players.filter((player) => {
+      const nameMatch = player.nombreJugador?.toLowerCase().includes(query);
+      const dorsalMatch = player.dorsal?.toString().includes(query);
 
-      return nameMatch || positionMatch || dorsalMatch;
+      const posMatch = player.idPosicion?.toString().includes(query);
+
+      return nameMatch || dorsalMatch || posMatch;
     });
-  }, [search]);
+  }, [search, players]);
+
+  if (loading) {
+    return <ActivityIndicator style={{ flex: 1 }} size="large" color={theme.primary} />;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -50,21 +77,20 @@ export default function PlayersScreen() {
       </View>
 
       <FlatList
-        data={filteredPlayers} // Usamos la lista filtrada en lugar de mockPlayers
-        keyExtractor={(item) => item.id_jugador}
-        renderItem={({ item }) => (
+        data={filteredPlayers}
+        keyExtractor={(item) => item.idJugador.toString()}
+        renderItem={({ item }: { item: any }) => ( // Pongo :any para evitar errores con el componente hijo por ahora !!!CORREGIR imporante!!!!!!!!
           <PlayerListItem 
             player={item} 
-            onPress={() => router.push(`/player/${item.id_jugador}`)} 
+            onPress={() => router.push(`/player/${item.idJugador}`)} 
           />
         )}
         contentContainerStyle={{ padding: 15 }}
-        // ESTADO VACÍO: Si no hay resultados, mostramos este mensaje
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <FontAwesome name="users" size={50} color={theme.textSecondary} style={{ opacity: 0.3 }} />
             <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No se han encontrado jugadores
+              No se han encontrado jugadores reales
             </Text>
           </View>
         }
