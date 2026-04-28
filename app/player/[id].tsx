@@ -31,7 +31,7 @@ export default function PlayerDetailScreen() {
   useEffect(() => {
     const fetchPlayer = async () => {
       try {
-        const response = await axios.get(`http://192.168.1.137:5268/api/jugadores/${id}`);
+        const response = await axios.get(`https://tactiq-tfg-api.onrender.com/api/jugadores/${id}`);
         setPlayer(response.data);
       } catch (error) {
         console.error("Error al cargar el detalle:", error);

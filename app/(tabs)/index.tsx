@@ -6,7 +6,6 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from '
 import MatchCard from '../../src/components/MatchCard';
 import { useTheme } from '../../src/context/ThemeContext';
 
-// 1. LA INTERFACE SIEMPRE FUERA DE LA FUNCIÓN
 interface Partido {
   idPartido: number;
   idEquipoLocal: number;
@@ -14,8 +13,8 @@ interface Partido {
   golesLocal: number;
   golesVisitante: number;
   fecha: string;
-  equipoLocal: string;     // Añadido porque lo usas en el filtro
-  equipoVisitante: string;  // Añadido porque lo usas en el filtro
+  equipoLocal: string;    
+  equipoVisitante: string;  
   lugar?: string;
 }
 
@@ -24,15 +23,13 @@ export default function MatchListScreen() {
   const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 2. USA SOLO UN ESTADO QUE SEA DEL TIPO PARTIDO[]
   const [matches, setMatches] = useState<Partido[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMatches = async () => {
       try {
-        // Asegúrate de que esta IP sea la correcta de tu PC hoy
-        const response = await axios.get('http://192.168.1.137:5268/api/partidos');
+        const response = await axios.get('https://tactiq-tfg-api.onrender.com/api/partidos');
         setMatches(response.data);
       } catch (error) {
         console.error("Error cargando partidos reales:", error);
@@ -49,7 +46,6 @@ export default function MatchListScreen() {
     if (query === '') return matches;
 
     return matches.filter((match) => {
-      // Ahora match ya sabe que tiene equipoLocal gracias a la interface
       return (
         match.equipoLocal.toLowerCase().includes(query) ||
         match.equipoVisitante.toLowerCase().includes(query)

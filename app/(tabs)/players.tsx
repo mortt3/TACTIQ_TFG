@@ -28,8 +28,7 @@ export default function PlayersScreen() {
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        // Usa tu IP local y el puerto 5268
-        const response = await axios.get('http://192.168.1.137:5268/api/jugadores');
+        const response = await axios.get('https://tactiq-tfg-api.onrender.com/api/Jugadores');
         setPlayers(response.data);
       } catch (error) {
         console.error("Error cargando jugadores:", error);
@@ -79,7 +78,7 @@ export default function PlayersScreen() {
       <FlatList
         data={filteredPlayers}
         keyExtractor={(item) => item.idJugador.toString()}
-        renderItem={({ item }: { item: any }) => ( // Pongo :any para evitar errores con el componente hijo por ahora !!!CORREGIR imporante!!!!!!!!
+        renderItem={({ item }: { item: any }) => ( // :any para evitar errores con el componente hijo por ahora !!!CORREGIR imporante!!!!!!!!
           <PlayerListItem 
             player={item} 
             onPress={() => router.push(`/player/${item.idJugador}`)} 
