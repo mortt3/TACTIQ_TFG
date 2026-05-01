@@ -95,6 +95,35 @@ export async function addEvent(matchId: string, event: Omit<MatchEvent, 'id'>): 
 	}
 }
 
+export async function getMatch(matchId: string): Promise<any | null> {
+	try {
+		const url = `${API_BASE}/api/partidos/${matchId}`;
+		console.log(`Fetching match from: ${url}`);
+		const res = await fetch(url, { headers: headers() });
+		if (!res.ok) {
+			console.warn('getMatch returned status', res.status);
+			return null;
+		}
+		const j = await res.json();
+		// Map response to a simpler match object
+		return {
+			id: j.idPartido,
+			jornada: j.jornada,
+			fecha: j.fecha,
+			hora: j.hora,
+			pabellon: j.pabellon,
+			equipoLocal: j.equipoLocal,
+			equipoVisitante: j.equipoVisitante,
+			score_local: j.equipoLocal?.goles ?? j.equipoLocal?.goles ?? null,
+			score_rival: j.equipoVisitante?.goles ?? j.equipoVisitante?.goles ?? null,
+			estadisticasJugadores: j.estadisticasJugadores || j.estadisticasJugadores || [],
+		};
+	} catch (err) {
+		console.warn('getMatch failed', err);
+		return null;
+	}
+}
+
 export async function login(email: string, password: string): Promise<{ token: string; userId: string } | null> {
 	try {
 		const url = `${API_BASE}/api/auth/login`;
@@ -123,6 +152,7 @@ export default {
 	setAuthToken,
 	getPlayers,
 	getPlayer,
+	getMatch,
 	addEvent,
 	login,
 };

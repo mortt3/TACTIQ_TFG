@@ -2,7 +2,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AddEventModal, { TimelineEvent } from '../../src/components/AddEventModal';
 import TimelineItem from '../../src/components/TimelineItem';
 import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto
@@ -75,8 +75,37 @@ export default function MatchDetailScreen() {
           <ActivityIndicator size="large" color={theme.primary} />
         ) : (
           <>
-            <Text style={[styles.vsText, { color: theme.textSecondary }]}>{match?.equipoLocal?.nombre || 'Local'} VS {match?.equipoVisitante?.nombre || 'Rival'}</Text>
-            <Text style={[styles.scoreText, { color: theme.text }]}>{match?.equipoLocal?.goles ?? match?.score_local ?? '-'} - {match?.equipoVisitante?.goles ?? match?.score_rival ?? '-'}</Text>
+            {/* Teams with logos */}
+            <View style={styles.teamsContainer}>
+              <View style={styles.teamColumn}>
+                {match?.equipoLocal?.imagenLogo && (
+                  <Image 
+                    source={{ uri: match.equipoLocal.imagenLogo }} 
+                    style={styles.teamLogo}
+                    defaultSource={require('../../assets/default-logo.png')}
+                  />
+                )}
+                <Text style={[styles.teamName, { color: theme.text }]}>{match?.equipoLocal?.nombre || 'Local'}</Text>
+              </View>
+              
+              <View style={styles.scoreContainer}>
+                <Text style={[styles.scoreText, { color: theme.text }]}>{match?.equipoLocal?.goles ?? match?.score_local ?? '-'}</Text>
+                <Text style={[styles.separator, { color: theme.textSecondary }]}>-</Text>
+                <Text style={[styles.scoreText, { color: theme.text }]}>{match?.equipoVisitante?.goles ?? match?.score_rival ?? '-'}</Text>
+              </View>
+              
+              <View style={styles.teamColumn}>
+                {match?.equipoVisitante?.imagenLogo && (
+                  <Image 
+                    source={{ uri: match.equipoVisitante.imagenLogo }} 
+                    style={styles.teamLogo}
+                    defaultSource={require('../../assets/default-logo.png')}
+                  />
+                )}
+                <Text style={[styles.teamName, { color: theme.text }]}>{match?.equipoVisitante?.nombre || 'Rival'}</Text>
+              </View>
+            </View>
+            
             <Text style={styles.statusText}>{match?.condicion || match?.status || ''}</Text>
           </>
         )}
@@ -131,13 +160,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
   },
-  vsText: {
-    fontSize: 16,
-    marginBottom: 5,
+  teamsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 10,
+  },
+  teamColumn: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  teamLogo: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+    backgroundColor: '#F0F0F0',
+  },
+  teamName: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
   scoreText: {
     fontSize: 36,
     fontWeight: 'bold',
+  },
+  separator: {
+    fontSize: 28,
+    marginHorizontal: 10,
+    fontWeight: '300',
   },
   statusText: {
     fontSize: 14,
