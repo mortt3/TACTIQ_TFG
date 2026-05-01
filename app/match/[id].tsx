@@ -21,6 +21,45 @@ export default function MatchDetailScreen() {
   const [loadingMatch, setLoadingMatch] = useState(true);
   const fallbackMatch = mockMatches.find(m => m.id_partido === Number(id));
   const router = useRouter(); 
+
+  // Generate timeline events from player statistics (injuries, cards, etc.)
+  const generateEventsFromStats = (stats: any[]) => {
+    const generatedEvents: TimelineEvent[] = [];
+    
+    stats.forEach((stat: any, idx: number) => {
+      if (stat.sanciones) {
+        if (stat.sanciones.amarillas && stat.sanciones.amarillas > 0) {
+          generatedEvents.push({
+            id: `${idx}-amarilla`,
+            minute: 0, // We don't have exact minute from stats
+            type: 'amarilla',
+            playerName: stat.nombreJugador,
+            playerNumber: stat.dorsal,
+          });
+        }
+        if (stat.sanciones.roja) {
+          generatedEvents.push({
+            id: `${idx}-roja`,
+            minute: 0,
+            type: 'roja',
+            playerName: stat.nombreJugador,
+            playerNumber: stat.dorsal,
+          });
+        }
+        if ((stat.sanciones.dos_minutos_1 || stat.sanciones.dos_minutos_2) && stat.sanciones.dos_minutos_1) {
+          generatedEvents.push({
+            id: `${idx}-2min`,
+            minute: 0,
+            type: '2min',
+            playerName: stat.nombreJugador,
+            playerNumber: stat.dorsal,
+          });
+        }
+      }
+    });
+    
+    return generatedEvents.length > 0 ? generatedEvents : initialEvents;
+  };
   
   const handleUploadVideo = () => {
     router.push(`/upload-video/${id}`);
@@ -55,7 +94,14 @@ export default function MatchDetailScreen() {
       try {
         if (!id) return;
         const m = await db.getMatch(id as string);
-        if (mounted) setMatch(m || fallbackMatch || null);
+        if (mounted) {
+          setMatch(m || fallbackMatch || null);
+          // Generate events from player statistics
+          if (m?.estadisticasJugadores) {
+            const generatedEvents = generateEventsFromStats(m.estadisticasJugadores);
+            setEvents(generatedEvents);
+          }
+        }
       } catch (err) {
         console.warn('Failed to load match', err);
         if (mounted) setMatch(fallbackMatch || null);
