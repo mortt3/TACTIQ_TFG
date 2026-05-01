@@ -105,6 +105,14 @@ export async function getMatch(matchId: string): Promise<any | null> {
 			return null;
 		}
 		const j = await res.json();
+		// Normalize team names - ensure consistency between list and detail views
+		const localTeam = j.equipoLocal || {};
+		const visitorTeam = j.equipoVisitante || {};
+		
+		// Use nombreEquipoLocal/nombreEquipoVisitante if available, fallback to objeto.nombre
+		localTeam.nombre = j.nombreEquipoLocal || localTeam.nombre || 'Local';
+		visitorTeam.nombre = j.nombreEquipoVisitante || visitorTeam.nombre || 'Rival';
+		
 		// Map response to a simpler match object
 		return {
 			id: j.idPartido,
@@ -112,11 +120,12 @@ export async function getMatch(matchId: string): Promise<any | null> {
 			fecha: j.fecha,
 			hora: j.hora,
 			pabellon: j.pabellon,
-			equipoLocal: j.equipoLocal,
-			equipoVisitante: j.equipoVisitante,
-			score_local: j.equipoLocal?.goles ?? j.equipoLocal?.goles ?? null,
-			score_rival: j.equipoVisitante?.goles ?? j.equipoVisitante?.goles ?? null,
-			estadisticasJugadores: j.estadisticasJugadores || j.estadisticasJugadores || [],
+			equipoLocal: localTeam,
+			equipoVisitante: visitorTeam,
+			score_local: localTeam?.goles ?? null,
+			score_rival: visitorTeam?.goles ?? null,
+			condicion: j.condicion,
+			estadisticasJugadores: j.estadisticasJugadores || [],
 		};
 	} catch (err) {
 		console.warn('getMatch failed', err);
