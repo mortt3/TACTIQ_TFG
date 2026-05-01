@@ -25,16 +25,17 @@ export default function MatchListScreen() {
         const data = await response.json();
         
         // Map API response to MatchCard format
+        // Note: /api/partidos returns nombreEquipoLocal/nombreEquipoVisitante directly (no nested object)
         const mappedMatches = data.map((p: any) => ({
           id_partido: p.idPartido,
-          local_nombre: p.nombreEquipoLocal || p.equipoLocal?.nombre || 'Local',
-          rival_nombre: p.nombreEquipoVisitante || p.equipoVisitante?.nombre || 'Rival',
-          local_logo: p.equipoLocal?.imagenLogo || 'https://via.placeholder.com/50',
-          rival_logo: p.equipoVisitante?.imagenLogo || 'https://via.placeholder.com/50',
+          local_nombre: p.nombreEquipoLocal || 'Local',
+          rival_nombre: p.nombreEquipoVisitante || 'Rival',
+          local_logo: 'https://via.placeholder.com/50', // List endpoint doesn't return logos
+          rival_logo: 'https://via.placeholder.com/50',   // They'll load from detail endpoint
           status: p.condicion === 'Jugado' ? 'played' : p.condicion === 'Próximo' ? 'next' : 'future',
           fecha: new Date(p.fecha),
-          score_local: p.equipoLocal?.goles || p.golesLocal,
-          score_rival: p.equipoVisitante?.goles || p.golesVisitante,
+          score_local: p.golesLocal,
+          score_rival: p.golesVisitante,
         }));
         
         if (mounted) setMatches(mappedMatches);
