@@ -82,7 +82,6 @@ export default function MatchDetailScreen() {
                   <Image 
                     source={{ uri: match.equipoLocal.imagenLogo }} 
                     style={styles.teamLogo}
-                    defaultSource={require('../../assets/default-logo.png')}
                   />
                 )}
                 <Text style={[styles.teamName, { color: theme.text }]}>{match?.equipoLocal?.nombre || 'Local'}</Text>
@@ -99,7 +98,6 @@ export default function MatchDetailScreen() {
                   <Image 
                     source={{ uri: match.equipoVisitante.imagenLogo }} 
                     style={styles.teamLogo}
-                    defaultSource={require('../../assets/default-logo.png')}
                   />
                 )}
                 <Text style={[styles.teamName, { color: theme.text }]}>{match?.equipoVisitante?.nombre || 'Rival'}</Text>
