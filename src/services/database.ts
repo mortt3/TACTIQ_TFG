@@ -5,6 +5,7 @@ export type Player = {
 	id: string;
 	nombre: string;
 	dorsal?: number;
+	foto_url?: string;
 };
 
 export type MatchEvent = {
@@ -49,6 +50,7 @@ export async function getPlayers(): Promise<Player[]> {
 			id: j.idJugador?.toString(),
 			nombre: j.nombreJugador,
 			dorsal: j.dorsal,
+			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 		}));
 	} catch (err) {
 		console.warn('getPlayers failed, returning empty list', err);
@@ -63,11 +65,12 @@ export async function getPlayer(id: string): Promise<Player | null> {
 		const res = await fetch(url, { headers: headers() });
 		if (!res.ok) return null;
 		const j = await res.json();
-		// Map response to Player type
+		// Map response to Player type (include foto_url)
 		return {
 			id: j.idJugador?.toString(),
 			nombre: j.nombreJugador,
 			dorsal: j.dorsal,
+			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 		};
 	} catch (err) {
 		console.warn('getPlayer failed', err);
