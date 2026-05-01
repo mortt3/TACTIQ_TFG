@@ -25,14 +25,16 @@ export default function MatchListScreen() {
         const data = await response.json();
         
         // Map API response to MatchCard format
-        // Note: /api/partidos returns nombreEquipoLocal/nombreEquipoVisitante directly (no nested object)
-        const mappedMatches = data.map((p: any) => ({
+        // Note: /api/partidos returns { value: [...], Count: N }
+        const matchesArray = data.value || data || [];
+        const mappedMatches = matchesArray.map((p: any) => ({
           id_partido: p.idPartido,
           local_nombre: p.nombreEquipoLocal || 'Local',
           rival_nombre: p.nombreEquipoVisitante || 'Rival',
           local_logo: 'https://via.placeholder.com/50', // List endpoint doesn't return logos
           rival_logo: 'https://via.placeholder.com/50',   // They'll load from detail endpoint
-          status: p.condicion === 'Jugado' ? 'played' : p.condicion === 'Próximo' ? 'next' : 'future',
+          // Determine status based on date (condicion field is about home/away, not match status)
+          status: new Date(p.fecha) < new Date() ? 'played' : 'future',
           fecha: new Date(p.fecha),
           score_local: p.golesLocal,
           score_rival: p.golesVisitante,
