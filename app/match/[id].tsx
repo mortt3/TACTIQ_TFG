@@ -1,13 +1,14 @@
 // Archivo: app/match/[id].tsx
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AddEventModal, { TimelineEvent } from '../../src/components/AddEventModal';
 import TimelineItem from '../../src/components/TimelineItem';
 import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto
 import initialEvents from '../consts/events';
 import mockMatches from '../consts/matches';
+import db from '../../src/services/database';
 
 export default function MatchDetailScreen() {
   const { theme } = useTheme(); // Extraemos el tema actual
@@ -16,7 +17,9 @@ export default function MatchDetailScreen() {
   const [events, setEvents] = useState(initialEvents);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [eventToEdit, setEventToEdit] = useState<TimelineEvent | null>(null);
-  const match = mockMatches.find(m => m.id_partido === Number(id));
+  const [match, setMatch] = useState<any | null>(null);
+  const [loadingMatch, setLoadingMatch] = useState(true);
+  const fallbackMatch = mockMatches.find(m => m.id_partido === Number(id));
   const router = useRouter(); 
   
   const handleUploadVideo = () => {
@@ -45,13 +48,38 @@ export default function MatchDetailScreen() {
     setIsAddModalVisible(true);
   };
 
+  useEffect(() => {
+    let mounted = true;
+    async function loadMatch() {
+      setLoadingMatch(true);
+      try {
+        if (!id) return;
+        const m = await db.getMatch(id as string);
+        if (mounted) setMatch(m || fallbackMatch || null);
+      } catch (err) {
+        console.warn('Failed to load match', err);
+        if (mounted) setMatch(fallbackMatch || null);
+      } finally {
+        if (mounted) setLoadingMatch(false);
+      }
+    }
+    loadMatch();
+    return () => { mounted = false; };
+  }, [id]);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER DEL PARTIDO */}
       <View style={[styles.headerCard, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <Text style={[styles.vsText, { color: theme.textSecondary }]}>Balonmano Zaragoza VS Rival</Text>
-        <Text style={[styles.scoreText, { color: theme.text }]}>{match?.score_local} - {match?.score_rival}</Text>
-        <Text style={styles.statusText}>{match?.status}</Text>
+        {loadingMatch ? (
+          <ActivityIndicator size="large" color={theme.primary} />
+        ) : (
+          <>
+            <Text style={[styles.vsText, { color: theme.textSecondary }]}>{match?.equipoLocal?.nombre || 'Local'} VS {match?.equipoVisitante?.nombre || 'Rival'}</Text>
+            <Text style={[styles.scoreText, { color: theme.text }]}>{match?.equipoLocal?.goles ?? match?.score_local ?? '-'} - {match?.equipoVisitante?.goles ?? match?.score_rival ?? '-'}</Text>
+            <Text style={styles.statusText}>{match?.condicion || match?.status || ''}</Text>
+          </>
+        )}
       </View>
 
       {/* BOTONERA DE ACCIONES */}
