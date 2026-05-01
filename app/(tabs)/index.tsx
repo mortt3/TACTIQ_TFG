@@ -108,41 +108,6 @@ export default function MatchListScreen() {
   );
 }
 
-  return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.searchContainer, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: theme.background }]}>
-          <FontAwesome name="search" size={18} color={theme.textSecondary} style={styles.searchIcon} />
-          <TextInput
-            style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Buscar por equipo..."
-            placeholderTextColor={theme.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
-
-      <FlatList
-        data={filteredMatches}
-        keyExtractor={(item) => item.id_partido.toString()}
-        renderItem={({ item }) => (
-          <MatchCard 
-            match={item} 
-            onPress={() => handlePressMatch(item.id_partido)} 
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={{ color: theme.textSecondary }}>No hay partidos que coincidan</Text>
-          </View>
-        }
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   searchContainer: { padding: 15, borderBottomWidth: 1 },
