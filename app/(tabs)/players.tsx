@@ -35,7 +35,8 @@ export default function PlayersScreen() {
             id_jugador: p.id,
             nombre: p.nombre,
             dorsal: p.dorsal,
-            posicion: 'N/A', // API doesn't return posicion in list endpoint
+            posicion: p.posicion || 'N/A', // API might not return posicion in list endpoint
+            foto_url: p.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
           }));
           setPlayers(mapped.length > 0 ? mapped : mockPlayers);
         }
