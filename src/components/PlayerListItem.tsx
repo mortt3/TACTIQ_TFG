@@ -4,36 +4,36 @@ import { useTheme } from '../context/ThemeContext'; // Importamos el contexto gl
 
 interface PlayerData {
   player: {
-    id_jugador: string,
-    nombre: string,
-    edad: number,
-    dorsal: number,
-    posicion: string,
-    foto_url: string
+    idJugador: number;      
+    nombreJugador: string; 
+    edad?: number;        
+    dorsal: number;
+    idPosicion: string;   
+    imagenJugador?: string; 
   },
   onPress: () => void
-}
-
-export default function PlayerListItem({ player, onPress }: PlayerData) {
-  const { theme } = useTheme(); // Extraemos el tema actual
+}export default function PlayerListItem({ player, onPress }: PlayerData) {
+  const { theme } = useTheme();
 
   return (
     <TouchableOpacity 
       style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]} 
       onPress={onPress}
     >
-      {/* Usamos theme.border como fondo de la foto temporal (gris claro/oscuro) */}
-      <Image source={{ uri: player.foto_url }} style={[styles.photo, { backgroundColor: theme.border }]} />
+      <Image 
+        source={{ uri: player.imagenJugador || 'https://via.placeholder.com/150' }} 
+        style={[styles.photo, { backgroundColor: theme.border }]} 
+      />
       
       <View style={styles.infoContainer}>
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Nombre</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.nombre}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.nombreJugador}</Text>
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Edad</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.edad}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.edad || 'N/A'}</Text>
           </View>
         </View>
 
@@ -44,14 +44,13 @@ export default function PlayerListItem({ player, onPress }: PlayerData) {
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Posición</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.posicion}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.idPosicion}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
 }
-
 // ESTILOS: He eliminado los backgroundColor, borderColor y color fijos
 const styles = StyleSheet.create({
   card: {
