@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider, useTheme } from '../src/context/ThemeContext'; // IMPORTAMOS EL TEMA
+import { setApiBase } from '../src/services/database'; // Importar setApiBase
 
 // 1. Separamos el Stack en un componente interno para poder leer el tema actual
 function RootStack() {
@@ -27,6 +28,14 @@ function RootStack() {
 
 // 2. El componente principal envuelve TODA la app con el Provider
 export default function RootLayout() {
+  useEffect(() => {
+    // Configure API base URL when app starts
+    // In development, use localhost:5268; in production, use your API server
+    const apiUrl = __DEV__ ? 'http://localhost:5268' : 'https://api.tactiq.app';
+    setApiBase(apiUrl);
+    console.log(`[APP INIT] API configured to: ${apiUrl}`);
+  }, []);
+
   return (
     <ThemeProvider>
       <RootStack />

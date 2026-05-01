@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import { useTheme } from '../context/ThemeContext'; // Importamos el contexto global
+import db from '../services/database'; // Importar el servicio de base de datos
 
 type EventType = 'gol' | 'amarilla' | '2min' | 'roja';
 
@@ -19,7 +20,13 @@ type AddEventModalProps = {
   eventToEdit?: TimelineEvent | null;
 };
 
-const mockPlayers = [
+type Player = {
+  id: string;
+  nombre: string;
+  dorsal?: number;
+};
+
+const mockPlayers: Player[] = [
   { id: '1', nombre: 'Joel Romero', dorsal: 18 },
   { id: '2', nombre: 'Carlos Pérez', dorsal: 5 },
   { id: '3', nombre: 'Luis Gómez', dorsal: 10 },
@@ -39,16 +46,37 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
   const [minute, setMinute] = useState('');
   const [type, setType] = useState<EventType>('gol');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
+  const [players, setPlayers] = useState<Player[]>(mockPlayers);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
 
   useEffect(() => {
     if (!visible) {
       return;
     }
 
+    // Cargar jugadores cuando el modal se abre
+    let mounted = true;
+    async function loadPlayers() {
+      setLoadingPlayers(true);
+      try {
+        const remote = await db.getPlayers();
+        if (mounted) {
+          setPlayers(remote.length > 0 ? remote : mockPlayers);
+        }
+      } catch (error) {
+        console.warn('Error loading players, using mock data:', error);
+        if (mounted) setPlayers(mockPlayers);
+      } finally {
+        if (mounted) setLoadingPlayers(false);
+      }
+    }
+
+    loadPlayers();
+
     if (eventToEdit) {
       setMinute(eventToEdit.minute.toString());
       setType(eventToEdit.type);
-      const player = mockPlayers.find((item) => item.nombre === eventToEdit.playerName);
+      const player = players.find((item) => item.nombre === eventToEdit.playerName);
       setSelectedPlayerId(player?.id ?? '');
       return;
     }
@@ -56,6 +84,8 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
     setMinute('');
     setType('gol');
     setSelectedPlayerId('');
+
+    return () => { mounted = false; };
   }, [visible, eventToEdit]);
 
   const handleSave = () => {
@@ -63,7 +93,7 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
       return;
     }
 
-    const player = mockPlayers.find((item) => item.id === selectedPlayerId);
+    const player = players.find((item) => item.id === selectedPlayerId);
     if (!player) {
       return;
     }
@@ -73,7 +103,7 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
       minute: Number(minute),
       type,
       playerName: player.nombre,
-      playerNumber: player.dorsal,
+      playerNumber: player.dorsal ?? 0,
     });
 
     onClose();
@@ -121,27 +151,34 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
           </View>
 
           <Text style={[styles.label, { color: theme.textSecondary }]}>Jugador</Text>
-          <ScrollView style={styles.playerList}>
-            {mockPlayers.map((player) => (
-              <TouchableOpacity
-                key={player.id}
-                style={[
-                  styles.playerItem,
-                  { borderColor: theme.border }, // Borde dinámico
-                  selectedPlayerId === player.id && { backgroundColor: theme.primary, borderColor: theme.primary },
-                ]}
-                onPress={() => setSelectedPlayerId(player.id)}
-              >
-                <Text style={[
-                  styles.playerText, 
-                  { color: theme.text }, // Texto dinámico
-                  selectedPlayerId === player.id && styles.playerTextSelected
-                ]}>
-                  {player.dorsal} - {player.nombre}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {loadingPlayers ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={theme.primary} />
+              <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Cargando jugadores...</Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.playerList}>
+              {players.map((player) => (
+                <TouchableOpacity
+                  key={player.id}
+                  style={[
+                    styles.playerItem,
+                    { borderColor: theme.border }, // Borde dinámico
+                    selectedPlayerId === player.id && { backgroundColor: theme.primary, borderColor: theme.primary },
+                  ]}
+                  onPress={() => setSelectedPlayerId(player.id)}
+                >
+                  <Text style={[
+                    styles.playerText, 
+                    { color: theme.text }, // Texto dinámico
+                    selectedPlayerId === player.id && styles.playerTextSelected
+                  ]}>
+                    {player.dorsal} - {player.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
 
           <View style={styles.footerButtons}>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -203,6 +240,15 @@ const styles = StyleSheet.create({
   actionTextSelected: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    fontSize: 14,
   },
   playerList: {
     maxHeight: 150,
