@@ -17,6 +17,7 @@ Se ha completado la integración del frontend (React Native/Expo) con los 9 endp
 | `app/_layout.tsx` | Configuración automática de API_BASE al iniciar la app | ✅ |
 | `src/components/AddEventModal.tsx` | Carga de jugadores desde `GET /api/jugadores` | ✅ |
 | `app/(tabs)/players.tsx` | Carga de listado de jugadores desde API con fallback a mock | ✅ |
+| `app/match/[id].tsx` | Carga de detalle de partido `GET /api/partidos/{id}` y estadísticas de jugadores | ✅ |
 
 ---
 
@@ -40,6 +41,7 @@ getPlayers(): Promise<Player[]>          // GET /api/jugadores
 getPlayer(id: string): Promise<Player>   // GET /api/jugadores/{id}
 login(email, password): Promise<{...}>   // POST /api/auth/login
 addEvent(matchId, event): Promise<Event> // POST /api/partidos/{matchId}/eventos
+getMatch(matchId: string): Promise<any>  // GET /api/partidos/{id}
 ```
 
 ### 2. app/_layout.tsx - Configuración de API
@@ -90,6 +92,18 @@ useEffect(() => {
   ```
 - ✅ ActivityIndicator durante carga
 - ✅ Fallback a mockPlayers
+
+### 5. app/match/[id].tsx - Detalle de Partido
+
+**Cambios:**
+- ✅ Agregado `db.getMatch(id)` en `useEffect` para cargar detalles del partido
+- ✅ Muestra nombre de equipos, resultado y estado en el header
+- ✅ `ActivityIndicator` mientras se carga la información
+- ✅ Fallback a `mockMatches` si la API falla
+
+**Notas:**
+- `getMatch` devuelve `equipoLocal`, `equipoVisitante` y `estadisticasJugadores` (usadas para futuras vistas de estadísticas por jugador en el partido).
+- Próximo paso: mostrar la lista `estadisticasJugadores` en la pantalla y permitir obtener más detalle por jugador directamente desde allí.
 
 ---
 
