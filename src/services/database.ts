@@ -79,6 +79,20 @@ export async function getPlayers(): Promise<Player[]> {
 	}
 }
 
+export async function getMatches(): Promise<any[]> {
+	try {
+		const url = `${API_BASE}/api/partidos`;
+		console.log(`Fetching matches from: ${url}`);
+		const res = await fetch(url, { headers: headers() });
+		if (!res.ok) throw new Error(`Status ${res.status}`);
+		const data = await res.json();
+		return data.value || data || [];
+	} catch (err) {
+		console.warn('getMatches failed, returning empty list', err);
+		return [];
+	}
+}
+
 export async function getPlayer(id: string): Promise<Player | null> {
 	try {
 		const baseUrl = `${API_BASE}/api/jugadores/${id}`;
@@ -233,6 +247,7 @@ export default {
 	setApiBase,
 	setAuthToken,
 	getPlayers,
+	getMatches,
 	getPlayer,
 	getMatch,
 	addEvent,

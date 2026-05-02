@@ -1,8 +1,9 @@
 // Archivo: app/(tabs)/index.tsx
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import MatchCard from '../../src/components/MatchCard';
 import { useTheme } from '../../src/context/ThemeContext';
 import db from '../../src/services/database';
@@ -14,43 +15,41 @@ export default function MatchListScreen() {
   const [matches, setMatches] = useState<any[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(true);
 
-  // Load matches from API on mount
-  useEffect(() => {
-    let mounted = true;
-    async function loadMatches() {
-      setLoadingMatches(true);
-      try {
-        const response = await fetch('http://localhost:5268/api/partidos');
-        if (!response.ok) throw new Error('Failed to load matches');
-        const data = await response.json();
-        
-        // Map API response to MatchCard format
-        // Note: /api/partidos returns { value: [...], Count: N }
-        const matchesArray = data.value || data || [];
-        const mappedMatches = matchesArray.map((p: any) => ({
-          id_partido: p.idPartido,
-          local_nombre: p.nombreEquipoLocal || 'Local',
-          rival_nombre: p.nombreEquipoVisitante || 'Rival',
-          local_logo: 'https://via.placeholder.com/50', // List endpoint doesn't return logos
-          rival_logo: 'https://via.placeholder.com/50',   // They'll load from detail endpoint
-          // Determine status based on date (condicion field is about home/away, not match status)
-          status: new Date(p.fecha) < new Date() ? 'played' : 'future',
-          fecha: new Date(p.fecha),
-          score_local: p.golesLocal,
-          score_rival: p.golesVisitante,
-        }));
-        
-        if (mounted) setMatches(mappedMatches);
-      } catch (err) {
-        console.warn('Failed to load matches from API', err);
-        if (mounted) setMatches([]);
-      } finally {
-        if (mounted) setLoadingMatches(false);
-      }
+  const loadMatches = useCallback(async () => {
+    setLoadingMatches(true);
+    try {
+      const matchesArray = await db.getMatches();
+
+      const mappedMatches = matchesArray.map((p: any) => ({
+        id_partido: p.idPartido,
+        local_nombre: p.nombreEquipoLocal || 'Local',
+        rival_nombre: p.nombreEquipoVisitante || 'Rival',
+        local_logo: 'https://via.placeholder.com/50',
+        rival_logo: 'https://via.placeholder.com/50',
+        status: new Date(p.fecha) < new Date() ? 'played' : 'future',
+        fecha: p.fecha ? new Date(p.fecha) : null,
+        score_local: p.golesLocal,
+        score_rival: p.golesVisitante,
+      }));
+
+      setMatches(mappedMatches);
+    } catch (err) {
+      console.warn('Failed to load matches from API', err);
+      setMatches([]);
+    } finally {
+      setLoadingMatches(false);
     }
-    loadMatches();
-    return () => { mounted = false; };
   }, []);
+
+  useEffect(() => {
+    loadMatches();
+  }, [loadMatches]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadMatches();
+    }, [loadMatches])
+  );
 
   // LÓGICA DE FILTRADO DE PARTIDOS
   const filteredMatches = useMemo(() => {

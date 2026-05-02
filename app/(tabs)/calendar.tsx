@@ -1,4 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -7,6 +8,7 @@ import { mockTeams } from '../consts/teams';
 
 export default function AddMatchScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
 
   // Estados del partido
   const [localTeam, setLocalTeam] = useState(mockTeams[0]); // Por defecto nosotros
@@ -140,6 +142,7 @@ export default function AddMatchScreen() {
     setHora('');
     setRivalTeam({ id: '0', nombre: 'Seleccionar Rival', logo: '' });
     setErrors({ rival: false, fecha: '', hora: '', sameTeam: false });
+    router.replace('/');
   };
 
   return (
