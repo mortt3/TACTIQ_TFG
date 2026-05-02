@@ -30,8 +30,9 @@ function RootStack() {
 export default function RootLayout() {
   useEffect(() => {
     // Configure API base URL when app starts
-    // In development, use localhost:5268; in production, use your API server
-    const apiUrl = __DEV__ ? 'http://localhost:5268' : 'https://api.tactiq.app';
+    // Use the deployed backend by default so Expo can reach the API from any device/emulator.
+    // If you need a local override, set __API_BASE_URL before the app boots.
+    const apiUrl = (global as any).__API_BASE_URL || 'https://tactiq-tfg-api.onrender.com';
     setApiBase(apiUrl);
     console.log(`[APP INIT] API configured to: ${apiUrl}`);
   }, []);

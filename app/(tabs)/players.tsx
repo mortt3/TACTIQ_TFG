@@ -12,6 +12,7 @@ type Player = {
   id?: string;
   nombre: string;
   nombreJugador?: string;
+  edad?: number;
   posicion?: string;
   dorsal?: number;
 };
@@ -34,10 +35,12 @@ export default function PlayersScreen() {
           const mapped = remote.map(p => ({
             id_jugador: p.id,
             nombre: p.nombre,
+            edad: p.edad,
             dorsal: p.dorsal,
-            posicion: p.posicion || 'N/A', // API might not return posicion in list endpoint
-            foto_url: p.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            posicion: p.posicion || 'N/A',
+            foto_url: p.foto_url,
           }));
+          console.log('Mapped players:', mapped);
           setPlayers(mapped.length > 0 ? mapped : mockPlayers);
         }
       } catch (error) {

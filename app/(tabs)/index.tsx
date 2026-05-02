@@ -19,19 +19,21 @@ export default function MatchListScreen() {
     setLoadingMatches(true);
     try {
       const matchesArray = await db.getMatches();
+      console.log('Raw matches from API:', matchesArray);
 
       const mappedMatches = matchesArray.map((p: any) => ({
         id_partido: p.idPartido,
-        local_nombre: p.nombreEquipoLocal || 'Local',
-        rival_nombre: p.nombreEquipoVisitante || 'Rival',
-        local_logo: 'https://via.placeholder.com/50',
-        rival_logo: 'https://via.placeholder.com/50',
+        local_nombre: p.local_nombre || p.nombreEquipoLocal || 'Local',
+        rival_nombre: p.rival_nombre || p.nombreEquipoVisitante || 'Rival',
+        local_logo: p.local_logo || 'https://via.placeholder.com/50',
+        rival_logo: p.rival_logo || 'https://via.placeholder.com/50',
         status: new Date(p.fecha) < new Date() ? 'played' : 'future',
         fecha: p.fecha ? new Date(p.fecha) : null,
         score_local: p.golesLocal,
         score_rival: p.golesVisitante,
       }));
 
+      console.log('Mapped matches:', mappedMatches);
       setMatches(mappedMatches);
     } catch (err) {
       console.warn('Failed to load matches from API', err);

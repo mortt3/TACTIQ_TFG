@@ -330,6 +330,7 @@ const styles = StyleSheet.create({
   teamTitle: { fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' },
   logoCircle: { width: 70, height: 70, borderRadius: 35, borderWidth: 2, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', backgroundColor: '#f0f0f0' },
   logoImg: { width: '100%', height: '100%', resizeMode: 'contain' },
+  placeholderLogo: { width: 50, height: 50, borderRadius: 25, borderWidth: 1, justifyContent: 'center', alignItems: 'center' },
   teamLabel: { marginTop: 8, fontSize: 13, fontWeight: '600', textAlign: 'center' },
   swapBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center', elevation: 2 },
   formContainer: { padding: 20, borderRadius: 15 },

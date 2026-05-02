@@ -37,7 +37,7 @@ interface PlayerData {
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Edad</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.edad || 'N/A'}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.edad ?? 'N/A'}</Text>
           </View>
         </View>
 

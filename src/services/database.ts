@@ -4,7 +4,9 @@
 export type Player = {
 	id: string;
 	nombre: string;
+	edad?: number;
 	dorsal?: number;
+	idPosicion?: number;
 	posicion?: string;
 	foto_url?: string;
 	stats?: {
@@ -44,7 +46,7 @@ export type CreateMatchPayload = {
 	condicion?: string;
 };
 
-let API_BASE = (global as any).__API_BASE_URL || 'http://localhost:5268';
+let API_BASE = (global as any).__API_BASE_URL || 'https://tactiq-tfg-api.onrender.com';
 let authToken: string | null = null;
 
 export function setApiBase(url: string) {
@@ -66,6 +68,31 @@ function headers(extra: Record<string,string> = {}) {
 	return h;
 }
 
+function unwrapListResponse(data: any): any[] {
+	if (Array.isArray(data)) return data;
+	if (Array.isArray(data?.value)) return data.value;
+	if (Array.isArray(data?.Value)) return data.Value;
+	return [];
+}
+
+function mapPosition(j: any): string | undefined {
+	if (j?.posicion || j?.Posicion) return j.posicion || j.Posicion;
+	if (j?.rolEspecifico || j?.RolEspecifico) return j.rolEspecifico || j.RolEspecifico;
+
+	const idPos = Number(j?.idPosicion ?? j?.IdPosicion);
+	if (!Number.isFinite(idPos) || idPos <= 0) return undefined;
+
+	const positionMap: Record<number, string> = {
+		1: 'Portero',
+		2: 'Central',
+		3: 'Lateral',
+		4: 'Extremo',
+		5: 'Pivote',
+	};
+
+	return positionMap[idPos] || `Posición ${idPos}`;
+}
+
 export async function getPlayers(): Promise<Player[]> {
 	try {
 		const url = `${API_BASE}/api/jugadores`;
@@ -73,12 +100,15 @@ export async function getPlayers(): Promise<Player[]> {
 		const res = await fetch(url, { headers: headers() });
 		if (!res.ok) throw new Error(`Status ${res.status}`);
 		const data = await res.json();
+		const rows = unwrapListResponse(data);
 		// Map API response to Player type: idJugador -> id, nombreJugador -> nombre
-		return data.map((j: any) => ({
+		return rows.map((j: any) => ({
 			id: j.idJugador?.toString(),
 			nombre: j.nombreJugador,
+			edad: j.edad ?? j.Edad,
 			dorsal: j.dorsal,
-			posicion: j.rolEspecifico || j.RolEspecifico || j.posicion || j.Posicion,
+			idPosicion: j.idPosicion ?? j.IdPosicion,
+			posicion: mapPosition(j),
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 		}));
 	} catch (err) {
@@ -87,14 +117,34 @@ export async function getPlayers(): Promise<Player[]> {
 	}
 }
 
+// Fallback teams map in case API endpoint fails
+const FALLBACK_TEAMS: Record<number, Team> = {
+	1: { id: '1', nombre: 'Equipo 1', logo: 'https://via.placeholder.com/60' },
+	2: { id: '2', nombre: 'Equipo 2', logo: 'https://via.placeholder.com/60' },
+	3: { id: '3', nombre: 'Equipo 3', logo: 'https://via.placeholder.com/60' },
+	5: { id: '5', nombre: 'Equipo 5', logo: 'https://via.placeholder.com/60' },
+	7: { id: '7', nombre: 'Equipo 7', logo: 'https://via.placeholder.com/60' },
+	8: { id: '8', nombre: 'Equipo 8', logo: 'https://via.placeholder.com/60' },
+	10: { id: '10', nombre: 'Equipo 10', logo: 'https://via.placeholder.com/60' },
+	11: { id: '11', nombre: 'Equipo 11', logo: 'https://via.placeholder.com/60' },
+	12: { id: '12', nombre: 'Equipo 12', logo: 'https://via.placeholder.com/60' },
+	13: { id: '13', nombre: 'Zaragoza', logo: 'https://via.placeholder.com/60' },
+	14: { id: '14', nombre: 'Equipo 14', logo: 'https://via.placeholder.com/60' },
+	15: { id: '15', nombre: 'Equipo 15', logo: 'https://via.placeholder.com/60' },
+};
+
 export async function getTeams(): Promise<Team[]> {
 	try {
 		const url = `${API_BASE}/api/equipos`;
 		console.log(`Fetching teams from: ${url}`);
 		const res = await fetch(url, { headers: headers() });
-		if (!res.ok) throw new Error(`Status ${res.status}`);
+		if (!res.ok) {
+			console.warn('getTeams returned status', res.status, 'using fallback');
+			return Object.values(FALLBACK_TEAMS);
+		}
 		const data = await res.json();
-		return (data || []).map((t: any) => ({
+		const rows = unwrapListResponse(data);
+		return rows.map((t: any) => ({
 			id: t.idEquipo?.toString(),
 			nombre: t.nombreEquipo,
 			logo: t.imagenLogo || 'https://via.placeholder.com/60',
@@ -102,8 +152,8 @@ export async function getTeams(): Promise<Team[]> {
 			idPabellon: t.idPabellon,
 		}));
 	} catch (err) {
-		console.warn('getTeams failed, returning empty list', err);
-		return [];
+		console.warn('getTeams failed, using fallback teams', err);
+		return Object.values(FALLBACK_TEAMS);
 	}
 }
 
@@ -111,10 +161,59 @@ export async function getMatches(): Promise<any[]> {
 	try {
 		const url = `${API_BASE}/api/partidos`;
 		console.log(`Fetching matches from: ${url}`);
-		const res = await fetch(url, { headers: headers() });
-		if (!res.ok) throw new Error(`Status ${res.status}`);
-		const data = await res.json();
-		return data.value || data || [];
+		const matchesRes = await fetch(url, { headers: headers() });
+		if (!matchesRes.ok) throw new Error(`Status ${matchesRes.status}`);
+
+		const matchesData = await matchesRes.json();
+		const matches = unwrapListResponse(matchesData);
+		
+		// Try to get teams, use fallback if fails
+		const teamsRes = await fetch(`${API_BASE}/api/equipos`, { headers: headers() });
+		const teamsData = teamsRes.ok ? await teamsRes.json() : [];
+		const teamsArray = teamsData.length > 0 ? unwrapListResponse(teamsData) : Object.values(FALLBACK_TEAMS).map((t: any) => ({
+			idEquipo: Number(t.id),
+			nombreEquipo: t.nombre,
+			imagenLogo: t.logo,
+		}));
+		
+		const teamMap = new Map<number, any>(
+			teamsArray
+				.map((t: any) => ({
+					id: Number(t.idEquipo ?? t.IdEquipo),
+					name: t.nombreEquipo ?? t.NombreEquipo,
+					logo: t.imagenLogo ?? t.ImagenLogo,
+				}))
+				.filter((t: any) => Number.isFinite(t.id) && t.id > 0)
+				.map((t: any) => [t.id, t])
+		);
+
+		console.log('Team map:', Array.from(teamMap.entries()));
+
+		return matches.map((p: any) => {
+			const localId = Number(p.idEquipoLocal ?? p.IdEquipoLocal);
+			const rivalId = Number(p.idEquipoVisitante ?? p.IdEquipoVisitante);
+			const localTeam = teamMap.get(localId);
+			const rivalTeam = teamMap.get(rivalId);
+
+			const result = {
+				idPartido: p.idPartido ?? p.IdPartido,
+				idEquipoLocal: localId,
+				idEquipoVisitante: rivalId,
+				local_nombre: localTeam?.name || p.nombreEquipoLocal || `Equipo ${localId || ''}`,
+				rival_nombre: rivalTeam?.name || p.nombreEquipoVisitante || `Equipo ${rivalId || ''}`,
+				nombreEquipoLocal: localTeam?.name || p.nombreEquipoLocal || `Equipo ${localId || ''}`,
+				nombreEquipoVisitante: rivalTeam?.name || p.nombreEquipoVisitante || `Equipo ${rivalId || ''}`,
+				local_logo: localTeam?.logo || p.local_logo || p.imagenLogoLocal || 'https://via.placeholder.com/50',
+				rival_logo: rivalTeam?.logo || p.rival_logo || p.imagenLogoVisitante || 'https://via.placeholder.com/50',
+				fecha: p.fecha,
+				hora: p.hora,
+				golesLocal: p.golesLocal ?? p.GolesLocal ?? 0,
+				golesVisitante: p.golesVisitante ?? p.GolesVisitante ?? 0,
+				condicion: p.condicion,
+			};
+			console.log('Match result:', result);
+			return result;
+		});
 	} catch (err) {
 		console.warn('getMatches failed, returning empty list', err);
 		return [];
@@ -127,13 +226,24 @@ export async function getPlayer(id: string): Promise<Player | null> {
 		const statsUrl = `${API_BASE}/api/jugadores/${id}/estadisticas-temporada`;
 		console.log(`Fetching player from: ${baseUrl}`);
 
-		const [baseRes, statsRes] = await Promise.all([
+		const [baseRes, statsRes, listRes] = await Promise.all([
 			fetch(baseUrl, { headers: headers() }),
 			fetch(statsUrl, { headers: headers() }),
+			fetch(`${API_BASE}/api/jugadores`, { headers: headers() }),
 		]);
 
-		if (!baseRes.ok) return null;
-		const j = await baseRes.json();
+		const listData = listRes.ok ? unwrapListResponse(await listRes.json()) : [];
+		const listPlayer = listData.find((j: any) => String(j.idJugador ?? j.IdJugador) === String(id));
+
+		let j: any = null;
+		if (baseRes.ok) {
+			j = await baseRes.json();
+		} else if (listPlayer) {
+			j = listPlayer;
+		} else {
+			console.warn('getPlayer returned status', baseRes.status);
+			return null;
+		}
 
 		const statsPayload = statsRes.ok ? await statsRes.json() : null;
 		const totalLanzamientos = Number(statsPayload?.totalLanzamientos ?? 0);
@@ -156,8 +266,10 @@ export async function getPlayer(id: string): Promise<Player | null> {
 		return {
 			id: (j.idJugador ?? j.IdJugador)?.toString(),
 			nombre: j.nombreJugador ?? j.NombreJugador,
+			edad: j.edad ?? j.Edad,
 			dorsal: j.dorsal ?? j.Dorsal,
-			posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
+			idPosicion: j.idPosicion ?? j.IdPosicion,
+			posicion: mapPosition(j),
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 			stats: {
 				lanzados: totalLanzamientos,
@@ -221,12 +333,55 @@ export async function getMatch(matchId: string): Promise<any | null> {
 	try {
 		const url = `${API_BASE}/api/partidos/${matchId}`;
 		console.log(`Fetching match from: ${url}`);
-		const res = await fetch(url, { headers: headers() });
-		if (!res.ok) {
+		const [res, matchesRes, teamsRes] = await Promise.all([
+			fetch(url, { headers: headers() }),
+			fetch(`${API_BASE}/api/partidos`, { headers: headers() }),
+			fetch(`${API_BASE}/api/equipos`, { headers: headers() }),
+		]);
+
+		const matchesData = matchesRes.ok ? unwrapListResponse(await matchesRes.json()) : [];
+		const fallbackMatch = matchesData.find((m: any) => String(m.idPartido ?? m.IdPartido) === String(matchId));
+		const teamsData = teamsRes.ok ? unwrapListResponse(await teamsRes.json()) : [];
+		const teamMap = new Map<number, any>(
+			teamsData
+				.map((t: any) => ({
+					id: Number(t.idEquipo ?? t.IdEquipo),
+					name: t.nombreEquipo ?? t.NombreEquipo,
+					logo: t.imagenLogo ?? t.ImagenLogo,
+				}))
+				.filter((t: any) => Number.isFinite(t.id) && t.id > 0)
+				.map((t: any) => [t.id, t])
+		);
+
+		let j: any = null;
+		if (res.ok) {
+			j = await res.json();
+		} else if (fallbackMatch) {
+			j = {
+				idPartido: fallbackMatch.idPartido ?? fallbackMatch.IdPartido ?? Number(matchId),
+				jornada: fallbackMatch.jornada ?? fallbackMatch.Jornada,
+				fecha: fallbackMatch.fecha ?? fallbackMatch.Fecha,
+				hora: fallbackMatch.hora ?? fallbackMatch.Hora,
+				pabellon: fallbackMatch.pabellon ?? fallbackMatch.NombrePabellon,
+				equipoLocal: {
+					id: fallbackMatch.idEquipoLocal,
+					nombre: fallbackMatch.local_nombre,
+					goles: fallbackMatch.golesLocal,
+					imagenLogo: teamMap.get(Number(fallbackMatch.idEquipoLocal))?.logo || fallbackMatch.local_logo,
+				},
+				equipoVisitante: {
+					id: fallbackMatch.idEquipoVisitante,
+					nombre: fallbackMatch.rival_nombre,
+					goles: fallbackMatch.golesVisitante,
+					imagenLogo: teamMap.get(Number(fallbackMatch.idEquipoVisitante))?.logo || fallbackMatch.rival_logo,
+				},
+				estadisticasJugadores: [],
+				condicion: fallbackMatch.condicion,
+			};
+		} else {
 			console.warn('getMatch returned status', res.status);
 			return null;
 		}
-		const j = await res.json();
 		// Map response to match object
 		// Note: Detail endpoint returns equipoLocal/equipoVisitante with id, nombre, goles, imagenLogo
 		return {
