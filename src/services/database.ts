@@ -20,8 +20,20 @@ export type MatchEvent = {
 	id: string;
 	minute: number;
 	type: string;
+	playerId?: number;
 	playerName: string;
 	playerNumber?: number;
+};
+
+export type CreateMatchPayload = {
+	idEquipoLocal: number;
+	idEquipoVisitante: number;
+	fecha: string;
+	hora: string;
+	idTemporada?: number;
+	jornada?: number;
+	idPabellon?: number;
+	condicion?: string;
 };
 
 let API_BASE = (global as any).__API_BASE_URL || 'http://localhost:5268';
@@ -136,6 +148,33 @@ export async function addEvent(matchId: string, event: Omit<MatchEvent, 'id'>): 
 	}
 }
 
+export async function addMatch(payload: CreateMatchPayload): Promise<any | null> {
+	try {
+		const url = `${API_BASE}/api/partidos`;
+		console.log(`Adding match to: ${url}`, payload);
+		const res = await fetch(url, {
+			method: 'POST',
+			headers: headers(),
+			body: JSON.stringify({
+				idEquipoLocal: payload.idEquipoLocal,
+				idEquipoVisitante: payload.idEquipoVisitante,
+				fecha: payload.fecha,
+				hora: payload.hora,
+				idTemporada: payload.idTemporada,
+				jornada: payload.jornada,
+				idPabellon: payload.idPabellon,
+				condicion: payload.condicion,
+			}),
+		});
+
+		if (!res.ok) throw new Error(`Status ${res.status}`);
+		return await res.json();
+	} catch (err) {
+		console.warn('addMatch failed', err);
+		return null;
+	}
+}
+
 export async function getMatch(matchId: string): Promise<any | null> {
 	try {
 		const url = `${API_BASE}/api/partidos/${matchId}`;
@@ -197,5 +236,6 @@ export default {
 	getPlayer,
 	getMatch,
 	addEvent,
+	addMatch,
 	login,
 };

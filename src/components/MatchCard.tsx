@@ -10,7 +10,7 @@ interface MatchData {
     local_logo: string,
     rival_logo: string,
     status: string,
-    fecha : string | null, // Cambiado a string porque viene de la API
+    fecha : string | Date | null,
     score_local?: number,
     score_rival?: number
   },
@@ -24,9 +24,11 @@ export default function MatchCard({ match, onPress }: MatchData) {
   let dateString = "TBD"; // Texto por defecto (To Be Determined)
   let timeString = "--:--";
 
-  // Verificamos si hay una fecha válida y no es la fecha vacía de .NET (0001...)
-  if (match.fecha && !match.fecha.startsWith("0001")) {
-    const dateObj = new Date(match.fecha);
+  const isDateObject = match.fecha instanceof Date;
+  const isValidStringDate = typeof match.fecha === 'string' && !match.fecha.startsWith('0001');
+
+  if ((isDateObject || isValidStringDate) && match.fecha) {
+    const dateObj = isDateObject ? (match.fecha as Date) : new Date(match.fecha as string);
     
     // Si la fecha es válida para JS
     if (!isNaN(dateObj.getTime())) {

@@ -2,6 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import { Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../src/context/ThemeContext';
+import db from '../../src/services/database';
 import { mockTeams } from '../consts/teams';
 
 export default function AddMatchScreen() {
@@ -50,8 +51,14 @@ export default function AddMatchScreen() {
     return mockTeams.filter(t => t.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [searchQuery]);
 
+  const parseTeamId = (teamId: string) => {
+    if (teamId === 'my-team') return 13;
+    const parsed = Number(teamId);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
+
   // Lógica de Validación Estricta
-  const handleSave = () => {
+  const handleSave = async () => {
     let hasError = false;
     const newErrors = { rival: false, fecha: '', hora: '', sameTeam: false };
 
@@ -107,7 +114,27 @@ export default function AddMatchScreen() {
       return;
     }
 
-    // --- GUARDADO EXITOSO ---
+    const idEquipoLocal = parseTeamId(localTeam.id);
+    const idEquipoVisitante = parseTeamId(rivalTeam.id);
+
+    if (!idEquipoLocal || !idEquipoVisitante) {
+      Alert.alert('Error', 'No se pudo convertir el ID de los equipos para guardar el partido.');
+      return;
+    }
+
+    const created = await db.addMatch({
+      idEquipoLocal,
+      idEquipoVisitante,
+      fecha: fecha.trim(),
+      hora: hora.trim(),
+      condicion: idEquipoLocal === 13 ? 'local' : 'visitante',
+    });
+
+    if (!created) {
+      Alert.alert('Error', 'No se pudo guardar el partido en la API.');
+      return;
+    }
+
     Alert.alert('¡Éxito!', 'Partido programado correctamente.');
     setFecha('');
     setHora('');

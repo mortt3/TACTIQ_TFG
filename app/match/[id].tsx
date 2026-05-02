@@ -2,7 +2,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AddEventModal, { TimelineEvent } from '../../src/components/AddEventModal';
 import TimelineItem from '../../src/components/TimelineItem';
 import { useTheme } from '../../src/context/ThemeContext'; // Importamos el contexto
@@ -70,16 +70,42 @@ export default function MatchDetailScreen() {
     setIsAddModalVisible(true);
   };
 
-  const handleSaveNewEvent = (newEvent: TimelineEvent) => {
-    setEvents((prevEvents) => {
-      const eventExists = prevEvents.some((event) => event.id === newEvent.id);
-      if (eventExists) {
-        return prevEvents.map((event) => (event.id === newEvent.id ? newEvent : event));
+  const handleSaveNewEvent = async (newEvent: TimelineEvent) => {
+    try {
+      if (!id) {
+        Alert.alert('Error', 'No se encontró el partido para guardar el evento.');
+        return;
       }
-      return [newEvent, ...prevEvents];
-    });
-    setEventToEdit(null);
-    setIsAddModalVisible(false);
+
+      const saved = await db.addEvent(id as string, {
+        minute: newEvent.minute,
+        type: newEvent.type,
+        playerId: newEvent.playerId,
+        playerName: newEvent.playerName,
+        playerNumber: newEvent.playerNumber,
+      });
+
+      if (!saved) {
+        Alert.alert('Error', 'No se pudo guardar el evento en la API.');
+        return;
+      }
+
+      const eventFromApi: TimelineEvent = {
+        id: saved.id?.toString() || newEvent.id,
+        minute: saved.minute ?? newEvent.minute,
+        type: (saved.type ?? newEvent.type) as TimelineEvent['type'],
+        playerId: saved.playerId ?? newEvent.playerId,
+        playerName: saved.playerName ?? newEvent.playerName,
+        playerNumber: saved.playerNumber ?? newEvent.playerNumber ?? 0,
+      };
+
+      setEvents((prevEvents) => [eventFromApi, ...prevEvents]);
+      setEventToEdit(null);
+      setIsAddModalVisible(false);
+    } catch (error) {
+      console.warn('Error saving event', error);
+      Alert.alert('Error', 'Ocurrió un error al guardar el evento.');
+    }
   };
 
   const handleEditEvent = (event: TimelineEvent) => {

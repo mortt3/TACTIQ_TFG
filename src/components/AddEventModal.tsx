@@ -9,6 +9,7 @@ export type TimelineEvent = {
   id: string;
   minute: number;
   type: EventType;
+  playerId?: number;
   playerName: string;
   playerNumber: number;
 };
@@ -76,7 +77,8 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
     if (eventToEdit) {
       setMinute(eventToEdit.minute.toString());
       setType(eventToEdit.type);
-      const player = players.find((item) => item.nombre === eventToEdit.playerName);
+      const player = players.find((item) => item.id === eventToEdit.playerId?.toString())
+        || players.find((item) => item.nombre === eventToEdit.playerName);
       setSelectedPlayerId(player?.id ?? '');
       return;
     }
@@ -102,6 +104,7 @@ export default function AddEventModal({ visible, onClose, onSave, eventToEdit = 
       id: eventToEdit?.id ?? Date.now().toString(),
       minute: Number(minute),
       type,
+      playerId: Number(player.id),
       playerName: player.nombre,
       playerNumber: player.dorsal ?? 0,
     });
