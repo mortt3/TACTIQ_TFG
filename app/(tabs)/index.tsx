@@ -1,26 +1,11 @@
+// Archivo: app/(tabs)/index.tsx
 import { FontAwesome } from '@expo/vector-icons';
-import axios from 'axios';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import MatchCard from '../../src/components/MatchCard';
 import { useTheme } from '../../src/context/ThemeContext';
-<<<<<<< HEAD
 import db from '../../src/services/database';
-=======
-
-interface Partido {
-  idPartido: number;
-  idEquipoLocal: number;
-  idEquipoVisitante: number;
-  golesLocal: number;
-  golesVisitante: number;
-  fecha: string;
-  equipoLocal: string;    
-  equipoVisitante: string;  
-  lugar?: string;
-}
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
 
 export default function MatchListScreen() {
   const router = useRouter();
@@ -67,32 +52,15 @@ export default function MatchListScreen() {
     return () => { mounted = false; };
   }, []);
 
-  const [matches, setMatches] = useState<Partido[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMatches = async () => {
-      try {
-        const response = await axios.get('https://tactiq-tfg-api.onrender.com/api/partidos');
-        setMatches(response.data);
-      } catch (error) {
-        console.error("Error cargando partidos reales:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
-  }, []);
-
+  // LÓGICA DE FILTRADO DE PARTIDOS
   const filteredMatches = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     if (query === '') return matches;
 
     return matches.filter((match) => {
       return (
-        match.equipoLocal.toLowerCase().includes(query) ||
-        match.equipoVisitante.toLowerCase().includes(query)
+        match.local_nombre.toLowerCase().includes(query) ||
+        match.rival_nombre.toLowerCase().includes(query)
       );
     });
   }, [searchQuery, matches]);
@@ -100,14 +68,6 @@ export default function MatchListScreen() {
   const handlePressMatch = (id_partido: number) => {
     router.push(`/match/${id_partido}`);
   };
-
-  if (loading) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center' }]}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -124,7 +84,6 @@ export default function MatchListScreen() {
         </View>
       </View>
 
-<<<<<<< HEAD
       {loadingMatches ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -148,24 +107,6 @@ export default function MatchListScreen() {
           }
         />
       )}
-=======
-      <FlatList
-        data={filteredMatches}
-        keyExtractor={(item) => item.idPartido.toString()}
-        renderItem={({ item }: { item: any }) => (
-          <MatchCard
-            match={item}
-            onPress={() => handlePressMatch(item.idPartido)}
-          />
-        )}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={{ color: theme.textSecondary }}>No hay partidos reales en la base de datos</Text>
-          </View>
-        }
-      />
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
     </View>
   );
 }

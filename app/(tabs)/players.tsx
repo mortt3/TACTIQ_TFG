@@ -1,28 +1,11 @@
 import { FontAwesome } from '@expo/vector-icons';
-import axios from 'axios';
 import { useRouter } from 'expo-router';
-<<<<<<< HEAD
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import PlayerListItem from '../../src/components/PlayerListItem';
 import { useTheme } from '../../src/context/ThemeContext';
 import db from '../../src/services/database';
 import mockPlayers from '../consts/players';
-=======
-import React, { useEffect, useMemo, useState } from 'react'; // Añadido useEffect
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
-import PlayerListItem from '../../src/components/PlayerListItem';
-import { useTheme } from '../../src/context/ThemeContext';
-
-interface Jugador {
-  idJugador: number;     
-  nombreJugador: string; 
-  dorsal: number;
-  idPosicion: string;   
-  edad: string;
-  imagenJugador?: string;
-}
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
 
 type Player = {
   id_jugador?: string;
@@ -69,29 +52,10 @@ export default function PlayersScreen() {
     return () => { mounted = false; };
   }, []);
 
-  // estados para api
-  const [players, setPlayers] = useState<Jugador[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  //conectarse  a la api para datos reales
-  useEffect(() => {
-    const fetchPlayers = async () => {
-      try {
-        const response = await axios.get('https://tactiq-tfg-api.onrender.com/api/Jugadores');
-        setPlayers(response.data);
-      } catch (error) {
-        console.error("Error cargando jugadores:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPlayers();
-  }, []);
-
-  // filtrado
+  // LÓGICA DE FILTRADO
+  // useMemo hace que el filtrado solo se ejecute cuando cambia el texto de 'search'
   const filteredPlayers = useMemo(() => {
     const query = search.toLowerCase().trim();
-<<<<<<< HEAD
     
     if (query === '') return players;
 
@@ -104,26 +68,10 @@ export default function PlayersScreen() {
       
       // 3. Buscamos por dorsal (convertimos el número a string)
       const dorsalMatch = (player.dorsal || 0).toString().includes(query);
-=======
-    if (query === '') return players;
 
-    return players.filter((player) => {
-      const nameMatch = player.nombreJugador?.toLowerCase().includes(query);
-      const dorsalMatch = player.dorsal?.toString().includes(query);
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
-
-      const posMatch = player.idPosicion?.toString().includes(query);
-
-      return nameMatch || dorsalMatch || posMatch;
+      return nameMatch || positionMatch || dorsalMatch;
     });
   }, [search, players]);
-<<<<<<< HEAD
-=======
-
-  if (loading) {
-    return <ActivityIndicator style={{ flex: 1 }} size="large" color={theme.primary} />;
-  }
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -142,7 +90,6 @@ export default function PlayersScreen() {
         </View>
       </View>
 
-<<<<<<< HEAD
       {loading ? (
         <View style={[styles.loadingContainer, { backgroundColor: theme.background }]}>
           <ActivityIndicator size="large" color={theme.primary} />
@@ -170,27 +117,6 @@ export default function PlayersScreen() {
           }
         />
       )}
-=======
-      <FlatList
-        data={filteredPlayers}
-        keyExtractor={(item) => item.idJugador.toString()}
-        renderItem={({ item }: { item: any }) => ( // :any para evitar errores con el componente hijo por ahora !!!CORREGIR imporante!!!!!!!!
-          <PlayerListItem 
-            player={item} 
-            onPress={() => router.push(`/player/${item.idJugador}`)} 
-          />
-        )}
-        contentContainerStyle={{ padding: 15 }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <FontAwesome name="users" size={50} color={theme.textSecondary} style={{ opacity: 0.3 }} />
-            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-              No se han encontrado jugadores reales
-            </Text>
-          </View>
-        }
-      />
->>>>>>> d26a4cea730223ea6012e763d18ddbcc33544bfb
     </View>
   );
 }
