@@ -1,18 +1,24 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Image, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../src/context/ThemeContext';
 import db from '../../src/services/database';
-import { mockTeams } from '../consts/teams';
+
+type Team = {
+  id: string;
+  nombre: string;
+  logo?: string;
+};
 
 export default function AddMatchScreen() {
   const { theme } = useTheme();
   const router = useRouter();
 
   // Estados del partido
-  const [localTeam, setLocalTeam] = useState(mockTeams[0]); // Por defecto nosotros
-  const [rivalTeam, setRivalTeam] = useState({ id: '0', nombre: 'Seleccionar Rival', logo: '' });
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [localTeam, setLocalTeam] = useState<Team>({ id: '13', nombre: 'Balonmano Zaragoza', logo: '' });
+  const [rivalTeam, setRivalTeam] = useState<Team>({ id: '0', nombre: 'Seleccionar Rival', logo: '' });
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
 
@@ -23,6 +29,30 @@ export default function AddMatchScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectingFor, setSelectingFor] = useState<'local' | 'rival'>('rival');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadTeams() {
+      const remote = await db.getTeams();
+      if (!mounted) return;
+
+      if (remote.length > 0) {
+        setTeams(remote);
+
+        const zaragoza = remote.find((team) => (team.nombre || '').toLowerCase().includes('zaragoza')) || remote[0];
+        if (zaragoza) {
+          setLocalTeam(zaragoza);
+        }
+      }
+    }
+
+    loadTeams();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Lógica de intercambio
   const swapTeams = () => {
@@ -50,11 +80,10 @@ export default function AddMatchScreen() {
 
   // Filtrado de equipos para el modal
   const filteredTeams = useMemo(() => {
-    return mockTeams.filter(t => t.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [searchQuery]);
+    return teams.filter(t => t.nombre.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [searchQuery, teams]);
 
   const parseTeamId = (teamId: string) => {
-    if (teamId === 'my-team') return 13;
     const parsed = Number(teamId);
     return Number.isNaN(parsed) ? null : parsed;
   };
@@ -121,6 +150,11 @@ export default function AddMatchScreen() {
 
     if (!idEquipoLocal || !idEquipoVisitante) {
       Alert.alert('Error', 'No se pudo convertir el ID de los equipos para guardar el partido.');
+      return;
+    }
+
+    if (idEquipoLocal === idEquipoVisitante) {
+      Alert.alert('Error', 'El equipo local y el visitante no pueden ser el mismo.');
       return;
     }
 
@@ -251,9 +285,31 @@ export default function AddMatchScreen() {
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.gridItem} onPress={() => selectTeam(item)}>
-                  <Image source={{ uri: item.logo }} style={styles.gridLogo} />
-                  <Text style={[styles.gridText, { color: theme.text }]} numberOfLines={2}>{item.nombre}</Text>
+                  {item.logo ? (
+                    <Image source={{ uri: item.logo }} style={styles.gridLogo} />
+                  ) : (
+                    <View style={[styles.placeholderLogo, { backgroundColor: theme.background, borderColor: theme.border }]}>
+                      <Text style={{ color: theme.text }}>{item.nombre ? item.nombre.charAt(0) : '?'}</Text>
+                    </View>
+                  )}
+                  <Text style={[styles.gridText, { color: theme.text }]} numberOfLines={2}>{item.nombre || 'Sin nombre'}</Text>
                 </TouchableOpacity>
+              )}
+              ListEmptyComponent={() => (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                  <Text style={{ color: theme.textSecondary, marginBottom: 10 }}>No hay equipos disponibles.</Text>
+                  <TouchableOpacity onPress={() => {
+                    // reintentar carga
+                    (async () => {
+                      const remote = await db.getTeams();
+                      setTeams(remote);
+                      const zaragoza = remote.find((team) => (team.nombre || '').toLowerCase().includes('zaragoza')) || remote[0];
+                      if (zaragoza) setLocalTeam(zaragoza);
+                    })();
+                  }}>
+                    <Text style={{ color: theme.primary, fontWeight: '600' }}>Reintentar</Text>
+                  </TouchableOpacity>
+                </View>
               )}
             />
 

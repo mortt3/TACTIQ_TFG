@@ -1,3 +1,4 @@
+```markdown
 # Frontend-API Integration Summary
 
 **Fecha:** May 1, 2026  
@@ -228,7 +229,7 @@ useEffect(() => {
 **Usado en:** Players tab, AddEventModal  
 **Respuesta:**
 ```json
-[
+[ 
   {
     "idJugador": 1,
     "nombreJugador": "Joel Romero",
@@ -476,3 +477,57 @@ Fetching players from: http://localhost:5268/api/jugadores
 
 **Estado Final:** INTEGRACIÓN COMPLETADA ✅
 Próximo paso: Implementar POST para guardar eventos y login.
+
+---
+
+## Cambios y trabajo realizado — May 2, 2026
+
+Resumen de hoy:
+- Añadimos en el backend un endpoint público `GET /api/equipos` para exponer la lista de equipos (nuevo `Controllers/EquiposController.cs` y DTO `Models/DTOs/EquipoDTO.cs`).
+- En el frontend se añadió `getTeams()` a `src/services/database.ts` y la pantalla de creación de partidos (`app/(tabs)/calendar.tsx`) fue conectada para cargar equipos reales desde la API.
+
+Detalles técnicos:
+- Backend: nuevo controller `EquiposController` que devuelve lista de equipos con campos `idEquipo`, `nombreEquipo`, `imagenLogo`, `ciudad`, `idPabellon`.
+- Frontend: `getTeams()` mapea `idEquipo` → `id` (string), `nombreEquipo` → `nombre`, `imagenLogo` → `logo`.
+- `calendar.tsx`:
+  - carga equipos en `useEffect` y selecciona por defecto el equipo que contiene "zaragoza" si existe;
+  - añade el modal selector de equipos que muestra grid de equipos;
+  - `parseTeamId()` convierte `id` string a number para enviarlo en el POST de creación de partido;
+  - validaciones en `handleSave()` para fecha/hora/formato y para evitar seleccionar el mismo equipo;
+  - al crear el partido llama `db.addMatch()` enviando `idEquipoLocal` e `idEquipoVisitante` (números reales provenientes de la API).
+- UX: cuando `logo` es null ahora mostramos un placeholder con la inicial del equipo; si la lista viene vacía mostramos un mensaje y un botón "Reintentar" que vuelve a llamar a `db.getTeams()`.
+
+Problemas encontrados y cómo los resolvimos:
+- Archivo ejecutable bloqueado (.NET build): la compilación falló al copiar `apphost.exe` / `TactiqApi.exe` porque un proceso mantenía el binario abierto. Solución: terminar el proceso con `taskkill /PID <pid> /F` (ej. PID 21676) y reiniciar `dotnet run`.
+- Warnings C# de nullability (CS8618, CS8601, CS8603, etc.): son advertencias reportadas durante build; las dejamos para tratamiento posterior (no bloquean la funcionalidad). Recomendación: añadir `required` o inicializadores donde corresponda.
+- Selector vacío en la UI (no mostrar equipos): añadimos logs en `database.ts` y mejoramos `calendar.tsx` para manejar `remote.length === 0` con `ListEmptyComponent` que muestra "No hay equipos disponibles" y botón "Reintentar".
+- Errores TypeScript al manejar `Date | string` en `MatchCard`: solucionado con casteos y comprobaciones explícitas antes de llamar a `getTime()`.
+
+Comprobaciones realizadas:
+- Probamos `GET /api/equipos` desde PowerShell (Invoke-RestMethod) y obtuvimos la lista de equipos; ejemplo: `Balonmano Zaragoza` devolvió `idEquipo: 13`.
+- Probamos en la app: al abrir el modal de selección los equipos ahora aparecen (placeholders si falta logo) y se puede seleccionar local/visitante; la creación de partido usa los IDs reales.
+
+Archivos modificados hoy (resumen):
+- `TACTIQ_TFG_API/Controllers/EquiposController.cs` (nuevo)
+- `TACTIQ_TFG_API/Models/DTOs/EquipoDTO.cs` (nuevo)
+- `TACTIQ_TFG/src/services/database.ts` (añadido `getTeams()`)
+- `TACTIQ_TFG/app/(tabs)/calendar.tsx` (carga de equipos, modal selector, validaciones, placeholders/reintento)
+- `TACTIQ_TFG/app/(tabs)/index.tsx` y `app/match/[id].tsx` (pequeños ajustes para asegurar IDs y refresco) — ya presentes en el changelog previa.
+
+Nota sobre cambios previos revertidos:
+- Se realizó un intento de ajustar `app/_layout.tsx` para manejar el host del emulador Android (`10.0.2.2`) durante las pruebas, pero esos cambios fueron revertidos posteriormente. Registro: la modificación existió en la sesión de hoy pero no se aplicó como cambio final en el repo (el usuario la deshizo).
+
+Próximos pasos recomendados:
+- Ejecutar una prueba E2E: arrancar backend (`dotnet run`) y app (`npm start` / Expo), crear un partido desde `calendar.tsx` y confirmar que aparece en `app/(tabs)/index.tsx`.
+- Limpiar las advertencias de nullability en backend para mejorar calidad de código.
+- Implementar persistencia del token y completar `POST /api/partidos/{id}/eventos` desde `AddEventModal` (ya preparado en `database.ts`).
+
+Adición solicitada por el usuario:
+- **Tareas pendientes explícitas:**
+  - Implementar la función de `login` y crear usuarios para los distintos clubes de balonmano. Cada club tendrá su usuario/rol y sólo podrá acceder/gestionar sus equipos.
+  - Integrar análisis de vídeo con la IA para extraer automáticamente estadísticas desde los vídeos subidos (pipeline: upload -> procesado IA -> métricas → persistencia en `estadisticasJugadores`).
+
+--
+Registro hecho: May 2, 2026
+
+``` 

@@ -16,6 +16,14 @@ export type Player = {
 	zonas?: Array<{ zona: string; lanz: number; gol: number; ef: string }>;
 };
 
+export type Team = {
+	id: string;
+	nombre: string;
+	logo?: string;
+	ciudad?: string;
+	idPabellon?: number;
+};
+
 export type MatchEvent = {
 	id: string;
 	minute: number;
@@ -75,6 +83,26 @@ export async function getPlayers(): Promise<Player[]> {
 		}));
 	} catch (err) {
 		console.warn('getPlayers failed, returning empty list', err);
+		return [];
+	}
+}
+
+export async function getTeams(): Promise<Team[]> {
+	try {
+		const url = `${API_BASE}/api/equipos`;
+		console.log(`Fetching teams from: ${url}`);
+		const res = await fetch(url, { headers: headers() });
+		if (!res.ok) throw new Error(`Status ${res.status}`);
+		const data = await res.json();
+		return (data || []).map((t: any) => ({
+			id: t.idEquipo?.toString(),
+			nombre: t.nombreEquipo,
+			logo: t.imagenLogo || 'https://via.placeholder.com/60',
+			ciudad: t.ciudad,
+			idPabellon: t.idPabellon,
+		}));
+	} catch (err) {
+		console.warn('getTeams failed, returning empty list', err);
 		return [];
 	}
 }
@@ -247,6 +275,7 @@ export default {
 	setApiBase,
 	setAuthToken,
 	getPlayers,
+	getTeams,
 	getMatches,
 	getPlayer,
 	getMatch,
