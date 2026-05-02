@@ -4,11 +4,15 @@ import { useTheme } from '../context/ThemeContext'; // Importamos el contexto gl
 
 interface PlayerData {
   player: {
-    idJugador: number;      
-    nombreJugador: string; 
+    id_jugador?: string;
+    id?: string;
+    nombre?: string;
+    nombreJugador?: string;
     edad?: number;        
-    dorsal: number;
-    idPosicion: string;   
+    dorsal?: number;
+    posicion?: string;
+    idPosicion?: string;
+    foto_url?: string;
     imagenJugador?: string; 
   },
   onPress: () => void
@@ -21,7 +25,7 @@ interface PlayerData {
       onPress={onPress}
     >
       <Image 
-        source={{ uri: player.imagenJugador || 'https://via.placeholder.com/150' }} 
+        source={{ uri: player.foto_url || player.imagenJugador || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} 
         style={[styles.photo, { backgroundColor: theme.border }]} 
       />
       
@@ -29,7 +33,7 @@ interface PlayerData {
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Nombre</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.nombreJugador}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.nombre || player.nombreJugador || '—'}</Text>
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Edad</Text>
@@ -40,11 +44,11 @@ interface PlayerData {
         <View style={styles.row}>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Dorsal</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.dorsal}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.dorsal ?? '—'}</Text>
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Posición</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.idPosicion}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>{player.posicion || player.idPosicion || '—'}</Text>
           </View>
         </View>
       </View>
