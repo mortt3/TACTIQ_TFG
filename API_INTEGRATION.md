@@ -3,7 +3,7 @@
 
 **Fecha:** May 1, 2026  
 **Estado:** ✅ COMPLETADO - Integración Total de Partidos y Jugadores  
-**Última Actualización:** May 1, 2026 - Full Frontend Integration Phase
+**Última Actualización:** May 3, 2026 - Portero Stats UI + Role-aware Detail
 
 ---
 
@@ -30,6 +30,82 @@ Se ha completado la integración TOTAL del frontend (React Native/Expo) con los 
 | `app/player/[id].tsx` | Carga individual de jugador con foto desde `foto_url` | ✅ |
 | `app/match/[id].tsx` | **MEJORADO:** Timeline auto-generada desde `estadisticasJugadores`, logos de equipos, scores correctos | ✅ |
 | `src/components/MatchCard.tsx` | Muestra scores, nombre de equipos sincronizados con detalle | ✅ |
+
+---
+
+## Bitácora Completa - Trabajo de Hoy (May 3, 2026)
+
+### Backend (.NET API) - Datos de jugadores consistentes
+
+- ✅ `GET /api/jugadores` y `GET /api/jugadores/{id}` devuelven posición desde tabla `posicion` (join por `id_posicion`).
+- ✅ Se expone `rolEspecifico` en list y detail (ejemplo: jugador id 7 devuelve `rolEspecifico: "Central"`).
+- ✅ Se añadió `Edad` en `JugadorDTO` y se mapea en `JugadoresController` para evitar `N/A` en frontend.
+- ✅ Se verificó respuesta en Render para casos reales (incluyendo porteros y jugadores de campo).
+
+### Frontend - Integración y mapeo robusto de respuestas
+
+- ✅ `src/services/database.ts` maneja respuestas en formatos `[]`, `{ value: [...] }` y `{ Value: [...] }`.
+- ✅ Se eliminó el traductor precario de posición en cliente; ahora se usan directamente `rolEspecifico` / `posicion` del API.
+- ✅ `getPlayers()` y `getPlayer()` mapean correctamente:
+  - `idJugador` → `id`
+  - `nombreJugador` → `nombre`
+  - `edad` / `Edad` → `edad`
+  - `rolEspecifico` + `posicion` → valores de UI
+  - `imagenJugador` → `foto_url`
+- ✅ `getPlayer()` tiene fallback de datos desde la lista cuando falla el endpoint detalle en despliegues intermitentes.
+- ✅ Se mantuvo fallback de equipos para evitar roturas visuales cuando `/api/equipos` falla.
+
+### UI Jugadores - Correcciones funcionales realizadas hoy
+
+- ✅ `app/(tabs)/players.tsx`: la lista prioriza `rolEspecifico` y lo mantiene en el objeto que consume la card.
+- ✅ `src/components/PlayerListItem.tsx`: posición mostrada como `rolEspecifico ?? posicion ?? idPosicion`.
+- ✅ `app/player/[id].tsx`: badge de cabecera muestra `rolEspecifico` antes de `posicion`.
+- ✅ Estadísticas condicionales para portero implementadas:
+  - Portero: `Lanz. recibidos`, `Paradas`, `Postes`, `Eficacia`
+  - Campo: `Lanzados`, `Goles`, `Sanciones`, `Valoración`
+- ✅ Ajuste final UX: el bloque **Desglose por zona** vuelve a ocultarse para porteros (no aporta valor en ese perfil).
+
+### Validación, despliegue y control de cambios
+
+- ✅ Comprobaciones manuales de endpoint sobre Render (jugadores list y detail).
+- ✅ Validación de tipos en frontend con `npx tsc --noEmit` sin errores en los cambios aplicados.
+- ✅ Cambios subidos en backend y frontend durante la sesión, con integración lista para continuidad.
+
+---
+
+## Cambios - Sesión Actual (Goalkeeper-Specific Detail Stats)
+
+### 1. app/player/[id].tsx - Estadísticas condicionales por posición
+
+**Nuevo comportamiento:**
+- ✅ Si el jugador es `Portero`, la cuadrícula principal muestra métricas específicas:
+  - `Lanz. recibidos` (`stats.lanzados`)
+  - `Paradas` (`stats.paradas`)
+  - `Postes` (`stats.postes`)
+  - `Eficacia` (`stats.eficaciaParadas`)
+- ✅ Si es jugador de campo, se mantiene el bloque existente (`Lanzados`, `Goles`, `Sanciones`, `Valoración`).
+- ✅ El bloque **Desglose por zona** se oculta para porteros y solo se muestra para jugadores de campo.
+
+### 2. src/services/database.ts - Mapeo de métricas de portero
+
+**Actualización del tipo `Player`:**
+- ✅ Nuevo flag `isPortero?: boolean`
+- ✅ Nuevos campos en `stats`:
+  - `paradas?: number`
+  - `postes?: number`
+  - `fuera?: number`
+  - `eficaciaParadas?: number`
+
+**Lógica nueva en `getPlayer(id)`:**
+- ✅ Detección de portero por `rolEspecifico`/`posicion`
+- ✅ Cálculo de eficacia de paradas:
+  ```typescript
+  eficaciaParadas = totalLanzamientos > 0
+    ? Math.round((totalParadas / totalLanzamientos) * 100)
+    : 0
+  ```
+- ✅ Para portero: `stats.valoracion` usa `eficaciaParadas`
+- ✅ Para portero: `zonas` se devuelve vacío (`[]`) para no mostrar desglose de tiro de campo
 
 ---
 
