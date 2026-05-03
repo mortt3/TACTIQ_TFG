@@ -8,6 +8,7 @@ export type Player = {
 	dorsal?: number;
 	idPosicion?: number;
 	posicion?: string;
+	rolEspecifico?: string;
 	foto_url?: string;
 	stats?: {
 		lanzados?: number;
@@ -95,6 +96,7 @@ export async function getPlayers(): Promise<Player[]> {
 			dorsal: j.dorsal,
 			idPosicion: j.idPosicion ?? j.IdPosicion,
 				posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
+				rolEspecifico: j.rolEspecifico ?? j.RolEspecifico,
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 		}));
 	} catch (err) {
@@ -256,6 +258,7 @@ export async function getPlayer(id: string): Promise<Player | null> {
 			dorsal: j.dorsal ?? j.Dorsal,
 			idPosicion: j.idPosicion ?? j.IdPosicion,
 			posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
+			rolEspecifico: j.rolEspecifico ?? j.RolEspecifico,
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 			stats: {
 				lanzados: totalLanzamientos,

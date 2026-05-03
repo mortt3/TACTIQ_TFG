@@ -11,6 +11,7 @@ interface PlayerData {
     edad?: number;        
     dorsal?: number;
     posicion?: string;
+    rolEspecifico?: string;
     idPosicion?: string;
     foto_url?: string;
     imagenJugador?: string; 
@@ -49,7 +50,7 @@ interface PlayerData {
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Posición</Text>
             <Text style={[styles.value, { color: theme.text }]}>
-              {player.posicion || (player as any).rolEspecifico || player.idPosicion || '—'}
+              {player.rolEspecifico ??  player.idPosicion ?? '—'}
             </Text>
           </View>
         </View>
