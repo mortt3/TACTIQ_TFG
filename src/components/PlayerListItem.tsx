@@ -48,7 +48,9 @@ interface PlayerData {
           </View>
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Posición</Text>
-            <Text style={[styles.value, { color: theme.text }]}>{player.posicion || player.idPosicion || '—'}</Text>
+            <Text style={[styles.value, { color: theme.text }]}>
+              {player.posicion || (player as any).rolEspecifico || player.idPosicion || '—'}
+            </Text>
           </View>
         </View>
       </View>

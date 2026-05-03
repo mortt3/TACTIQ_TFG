@@ -37,7 +37,8 @@ export default function PlayersScreen() {
             nombre: p.nombre,
             edad: p.edad,
             dorsal: p.dorsal,
-            posicion: p.posicion || 'N/A',
+            // Prefer specific role (rolEspecifico) over general posicion
+            posicion: (p as any).rolEspecifico ?? (p as any).RolEspecifico ?? p.posicion ?? 'N/A',
             foto_url: p.foto_url,
           }));
           console.log('Mapped players:', mapped);
