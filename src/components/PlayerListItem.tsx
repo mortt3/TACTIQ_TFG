@@ -50,7 +50,7 @@ interface PlayerData {
           <View style={styles.column}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Posición</Text>
             <Text style={[styles.value, { color: theme.text }]}>
-              {player.rolEspecifico ??  player.idPosicion ?? '—'}
+              {player.rolEspecifico ?? player.posicion ?? player.idPosicion ?? '—'}
             </Text>
           </View>
         </View>

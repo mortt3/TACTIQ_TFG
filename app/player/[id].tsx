@@ -9,8 +9,19 @@ type PlayerAPI = {
   nombre?: string;
   dorsal?: number;
   posicion?: string;
+  rolEspecifico?: string;
+  isPortero?: boolean;
   foto_url?: string;
-  stats?: any;
+  stats?: {
+    lanzados?: number;
+    goles?: number;
+    sanciones?: number;
+    valoracion?: number;
+    paradas?: number;
+    postes?: number;
+    fuera?: number;
+    eficaciaParadas?: number;
+  };
   zonas?: Array<{ zona: string; lanz: number; gol: number; ef: string }>;
 }
 
@@ -20,6 +31,7 @@ export default function PlayerDetailScreen() {
 
   const [player, setPlayer] = useState<PlayerAPI | null>(null);
   const [loading, setLoading] = useState(true);
+  const isPortero = !!player?.isPortero || /portero/i.test(`${player?.rolEspecifico ?? ''} ${player?.posicion ?? ''}`);
 
   useEffect(() => {
     let mounted = true;
@@ -69,46 +81,70 @@ export default function PlayerDetailScreen() {
 
       {/* BLOQUE DE 4 ESTADÍSTICAS */}
       <View style={styles.statsGrid}>
-        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Lanzados</Text>
-          <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.lanzados ?? '—'}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Goles</Text>
-          <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.goles ?? '—'}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Sanciones</Text>
-          <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.sanciones ?? '—'}</Text>
-        </View>
-        <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Valoración</Text>
-          <Text style={[styles.statValue, { color: '#28a745' }]}>{player?.stats?.valoracion ?? '—'}</Text>
-        </View>
+        {isPortero ? (
+          <>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Lanz. recibidos</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.lanzados ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Paradas</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.paradas ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Postes</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.postes ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Eficacia</Text>
+              <Text style={[styles.statValue, { color: '#28a745' }]}>{player?.stats?.eficaciaParadas ?? '—'}%</Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Lanzados</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.lanzados ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Goles</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.goles ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Sanciones</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{player?.stats?.sanciones ?? '—'}</Text>
+            </View>
+            <View style={[styles.statBox, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>Valoración</Text>
+              <Text style={[styles.statValue, { color: '#28a745' }]}>{player?.stats?.valoracion ?? '—'}</Text>
+            </View>
+          </>
+        )}
       </View>
 
-      {/* DESGLOSE POR ZONA */}
-      <View style={[styles.section, { backgroundColor: theme.card, borderTopColor: theme.border, borderBottomColor: theme.border }]}> 
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>Desglose por zona</Text>
-        
-        <View style={[styles.table, { borderColor: theme.border }]}> 
-          <View style={[styles.tableHeader, { backgroundColor: theme.background, borderBottomColor: theme.border }]}> 
-            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Zona</Text>
-            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Lanz</Text>
-            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Gol</Text>
-            <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Eficacia</Text>
-          </View>
+      {!isPortero && (
+        <View style={[styles.section, { backgroundColor: theme.card, borderTopColor: theme.border, borderBottomColor: theme.border }]}> 
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Desglose por zona</Text>
           
-          {(player?.zonas || []).map((z, index) => (
-            <View key={index} style={[styles.tableRow, { borderBottomColor: theme.border }]}> 
-              <Text style={[styles.cell, { color: theme.text }]}>{z.zona}</Text>
-              <Text style={[styles.cell, { color: theme.text }]}>{z.lanz}</Text>
-              <Text style={[styles.cell, { color: theme.text }]}>{z.gol}</Text>
-              <Text style={[styles.cell, { color: theme.text, fontWeight: 'bold' }]}>{z.ef}</Text>
+          <View style={[styles.table, { borderColor: theme.border }]}> 
+            <View style={[styles.tableHeader, { backgroundColor: theme.background, borderBottomColor: theme.border }]}> 
+              <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Zona</Text>
+              <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Lanz</Text>
+              <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Gol</Text>
+              <Text style={[styles.cell, styles.headerText, { color: theme.textSecondary }]}>Eficacia</Text>
             </View>
-          ))}
+            
+            {(player?.zonas || []).map((z, index) => (
+              <View key={index} style={[styles.tableRow, { borderBottomColor: theme.border }]}> 
+                <Text style={[styles.cell, { color: theme.text }]}>{z.zona}</Text>
+                <Text style={[styles.cell, { color: theme.text }]}>{z.lanz}</Text>
+                <Text style={[styles.cell, { color: theme.text }]}>{z.gol}</Text>
+                <Text style={[styles.cell, { color: theme.text, fontWeight: 'bold' }]}>{z.ef}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
     </ScrollView>
   );

@@ -9,12 +9,17 @@ export type Player = {
 	idPosicion?: number;
 	posicion?: string;
 	rolEspecifico?: string;
+	isPortero?: boolean;
 	foto_url?: string;
 	stats?: {
 		lanzados?: number;
 		goles?: number;
 		sanciones?: number;
 		valoracion?: number;
+		paradas?: number;
+		postes?: number;
+		fuera?: number;
+		eficaciaParadas?: number;
 	};
 	zonas?: Array<{ zona: string; lanz: number; gol: number; ef: string }>;
 };
@@ -236,10 +241,19 @@ export async function getPlayer(id: string): Promise<Player | null> {
 		const statsPayload = statsRes.ok ? await statsRes.json() : null;
 		const totalLanzamientos = Number(statsPayload?.totalLanzamientos ?? 0);
 		const totalGoles = Number(statsPayload?.totalGoles ?? 0);
+		const totalParadas = Number(statsPayload?.totalParadas ?? 0);
+		const totalPostes = Number(statsPayload?.totalPostes ?? 0);
+		const totalFuera = Number(statsPayload?.totalFuera ?? 0);
 		const totalSanciones =
 			Number(statsPayload?.sanciones2Mins ?? 0) +
 			Number(statsPayload?.sancionesRojas ?? 0) +
 			Number(statsPayload?.sancionesAmarillas ?? 0);
+		const rawPosicion = j.posicion ?? j.Posicion;
+		const rawRolEspecifico = j.rolEspecifico ?? j.RolEspecifico;
+		const isPortero = /portero/i.test(`${rawRolEspecifico ?? ''} ${rawPosicion ?? ''}`);
+		const eficaciaParadas = totalLanzamientos > 0
+			? Math.round((totalParadas / totalLanzamientos) * 100)
+			: 0;
 
 		const zoneRows = [
 			{ zona: '9m', lanz: Number(statsPayload?.m9Lanz ?? 0), gol: Number(statsPayload?.m9Goles ?? 0) },
@@ -257,16 +271,23 @@ export async function getPlayer(id: string): Promise<Player | null> {
 			edad: j.edad ?? j.Edad,
 			dorsal: j.dorsal ?? j.Dorsal,
 			idPosicion: j.idPosicion ?? j.IdPosicion,
-			posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
-			rolEspecifico: j.rolEspecifico ?? j.RolEspecifico,
+			posicion: rawRolEspecifico ?? rawPosicion,
+			rolEspecifico: rawRolEspecifico,
+			isPortero,
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 			stats: {
 				lanzados: totalLanzamientos,
 				goles: totalGoles,
 				sanciones: totalSanciones,
-				valoracion: Number(statsPayload?.valoracionTotal ?? statsPayload?.porcentajeGol ?? 0),
+				valoracion: isPortero
+					? eficaciaParadas
+					: Number(statsPayload?.valoracionTotal ?? statsPayload?.porcentajeGol ?? 0),
+				paradas: totalParadas,
+				postes: totalPostes,
+				fuera: totalFuera,
+				eficaciaParadas,
 			},
-			zonas: zoneRows,
+			zonas: isPortero ? [] : zoneRows,
 		};
 	} catch (err) {
 		console.warn('getPlayer failed', err);

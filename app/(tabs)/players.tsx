@@ -38,7 +38,9 @@ export default function PlayersScreen() {
             edad: p.edad,
             dorsal: p.dorsal,
             // Prefer specific role (rolEspecifico) over general posicion
-            posicion: (p as any).rolEspecifico ?? (p as any).RolEspecifico ?? p.posicion ?? 'N/A',
+              posicion: (p as any).rolEspecifico ?? (p as any).RolEspecifico ?? p.posicion ?? 'N/A',
+              // Also expose rolEspecifico explicitly so child components can read it
+              rolEspecifico: (p as any).rolEspecifico ?? (p as any).RolEspecifico ?? p.posicion ?? null,
             foto_url: p.foto_url,
           }));
           console.log('Mapped players:', mapped);
