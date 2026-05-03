@@ -75,23 +75,9 @@ function unwrapListResponse(data: any): any[] {
 	return [];
 }
 
-function mapPosition(j: any): string | undefined {
-	if (j?.posicion || j?.Posicion) return j.posicion || j.Posicion;
-	if (j?.rolEspecifico || j?.RolEspecifico) return j.rolEspecifico || j.RolEspecifico;
-
-	const idPos = Number(j?.idPosicion ?? j?.IdPosicion);
-	if (!Number.isFinite(idPos) || idPos <= 0) return undefined;
-
-	const positionMap: Record<number, string> = {
-		1: 'Portero',
-		2: 'Central',
-		3: 'Lateral',
-		4: 'Extremo',
-		5: 'Pivote',
-	};
-
-	return positionMap[idPos] || `Posición ${idPos}`;
-}
+// Position mapping removed: the API now exposes `posicion`/`Posicion`
+// which comes from the DB `posicion` table via the backend join.
+// Frontend will use the `posicion` / `Posicion` / `rolEspecifico` fields from the API response.
 
 export async function getPlayers(): Promise<Player[]> {
 	try {
@@ -108,7 +94,7 @@ export async function getPlayers(): Promise<Player[]> {
 			edad: j.edad ?? j.Edad,
 			dorsal: j.dorsal,
 			idPosicion: j.idPosicion ?? j.IdPosicion,
-			posicion: mapPosition(j),
+				posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 		}));
 	} catch (err) {
@@ -269,7 +255,7 @@ export async function getPlayer(id: string): Promise<Player | null> {
 			edad: j.edad ?? j.Edad,
 			dorsal: j.dorsal ?? j.Dorsal,
 			idPosicion: j.idPosicion ?? j.IdPosicion,
-			posicion: mapPosition(j),
+			posicion: j.rolEspecifico ?? j.RolEspecifico ?? j.posicion ?? j.Posicion,
 			foto_url: j.imagenJugador || j.ImagenJugador || j.foto_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
 			stats: {
 				lanzados: totalLanzamientos,
