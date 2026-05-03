@@ -60,7 +60,7 @@ export default function PlayerDetailScreen() {
                 Dorsal {player?.dorsal ?? '—'}
               </Text>
               <Text style={[styles.badge, { backgroundColor: theme.background, color: theme.textSecondary }]}>
-                {player?.posicion || '—'}
+                {(player as any)?.rolEspecifico ?? player?.posicion ?? '—'}
               </Text>
             </View>
           </>
